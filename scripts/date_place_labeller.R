@@ -16,9 +16,12 @@ training_dat <- dat %>%
   slice(1) %>% 
   inner_join(metadata_dat, by = c("task_id" = "id")) %>%
   select(c("task_id", 
+           "info_article_article_number",
            "info_article_text.x", 
+           "info_highlights_0_case_number",
            "info_article_metadata_city",
            "info_article_metadata_date_published"))
+write_csv(training_dat, "data/metadata_table.csv")
 
 ### source functions from Nick's script
 source("scripts/Day2Dates.R")
