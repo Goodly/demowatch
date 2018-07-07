@@ -1,13 +1,6 @@
-library(jsonlite)
 library(readr)
 library(dplyr)
 library(reshape2)
-
-### JSON processing
-dat_json <- read_json("~/Desktop/downloads/dfcrowd1dh-2018-06-21T01.json")
-results <- dat_json$results
-
-dim(results)
 
 ### CSV processing
 dat <- read_csv("~/df-canonicalization/data/textthresher/dfcrowd1dh-2018-06-21T01.csv")
