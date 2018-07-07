@@ -27,8 +27,17 @@ grouped_dat <- dat %>%
            contributor_id,
            topic_number,
            question_number) %>%
-  summarize(answer_list = list(unique(answer_number))) %>%
-  mutate(question_number = paste(topic_number, question_number, sep = "."))
+  summarize(answer_list = list(unique(answer_number))) 
+
+grouped_dat$question_number <- sapply(grouped_dat$question_number, 
+                                      function(x) {if (x < 10) {
+                                        return(paste0(0, x))
+                                        } else {
+                                          return(as.character(x))}})
+
+grouped_dat <- grouped_dat %>% mutate(question_number = paste(topic_number, 
+                                                              question_number, 
+                                                              sep = "."))
 grouped_dat <- grouped_dat[, c(1, 2, 4, 5)]
 
 all_q <- sort(unique(grouped_dat$question_number))
@@ -48,6 +57,4 @@ for (i in 1:nrow(tasks_and_contributors)) {
   
   colnames(sub_answers) <- unlist(sub_answers[1, ])
   sub_answers <- sub_answers[-1, ]
-  
-  
 }
