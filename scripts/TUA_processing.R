@@ -39,6 +39,7 @@ tua_parser <- function(tua_text) {
   return(list(without_extra))
 }
 
+
 ###
 
 
