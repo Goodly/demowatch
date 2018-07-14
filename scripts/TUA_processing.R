@@ -2,7 +2,7 @@ library(readr)
 library(dplyr)
 
 ###
-dir <- "~/df-canonicalization/"
+dir <- "/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization"
 setwd(dir)
 
 ###
