@@ -29,7 +29,7 @@ tua_parser <- function(tua_text) {
   garbage <- c("”", "“")
   
   # split input into list of strings
-  split_tua <- unlist(strsplit(test_tua, '\"'))
+  split_tua <- unlist(strsplit(tua_text, '\"'))
   
   # check and remove trash characters
   garbage_check <- sapply(garbage, grepl, split_tua)
@@ -42,7 +42,10 @@ tua_parser <- function(tua_text) {
   return(list(without_extra))
 }
 
+
 ###
+metadata_with_tua$TUA <- sapply(metadata_with_tua$TUA, tua_parser)
 
 
-write_csv(metadata_dat, "metadata_table.csv")
+saveRDS(metadata_with_tua, "data/metadata_table.rds")
+
