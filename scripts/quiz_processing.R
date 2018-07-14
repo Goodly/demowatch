@@ -39,15 +39,26 @@ tasks_and_contributors <- grouped_dat %>%
   summarize() %>% 
   na.omit()
 
+col_names <- c("task", "contributor", all_q)
+all_answers <- matrix(0, ncol = length(all_q) + 2, 
+                      nrow = nrow(tasks_and_contributors))
+all_answers[, 1:2] <- as.matrix(tasks_and_contributors)
+colnames(all_answers) <- col_names
 
 for (i in 1:nrow(tasks_and_contributors)) {
+  ### retrieve task and contributor
   task <- tasks_and_contributors[[i, 1]]
   contributor <- tasks_and_contributors[[i, 2]]
   
+  ### access the answers
   sub_table <- grouped_dat %>%
     filter(task_pybossa_id == task & contributor_id == contributor)
   sub_answers <- as.data.frame(t(sub_table[, 3:4]))
   
+  ### transform answers tall to wide
   colnames(sub_answers) <- unlist(sub_answers[1, ])
   sub_answers <- sub_answers[-1, ]
+  
+  ### append into container matrix
+  
 }
