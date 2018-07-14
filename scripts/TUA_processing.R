@@ -19,4 +19,30 @@ metadata_with_tua <- tua_dat %>%
          date_published = info_article_metadata_date_published,
          TUA = offsets, 
          article_text = info_article_text.x)
-write_csv(metadata_dat, "metadata_table.csv")
+
+###
+tua_parser <- function(tua_text) {
+  # trash characters to remove
+  garbage <- c("”", "“")
+  
+  # split input into list of strings
+  split_tua <- unlist(strsplit(tua_text, '\"'))
+  
+  # check and remove trash characters
+  garbage_check <- sapply(garbage, grepl, split_tua)
+  for (j in 1:ncol(garbage_check)) {
+    for (i in 1:nrow(garbage_check)) {
+      if (garbage_check[i, j]) {
+        split_tua[i] <- gsub(garbage[j], "", split_tua[i])
+      }}}
+  without_extra <- split_tua[seq(2, length(split_tua), 2)]
+  return(list(without_extra))
+}
+
+
+###
+metadata_with_tua$TUA <- sapply(metadata_with_tua$TUA, tua_parser)
+
+
+saveRDS(metadata_with_tua, "data/metadata_table.rds")
+
