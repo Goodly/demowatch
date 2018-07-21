@@ -36,10 +36,21 @@ getEventDate <- function(article_data) {
   pdate_weekday_number <- weekdayNumber(article_data$date_published)
   event_weekday_number <- t(data.frame(lapply(article_data$article_text, return_days)))
   date_diff <- pdate_weekday_number - event_weekday_number
-  numeric_diff <- ifelse(date_diff > 0, date_diff,  # > 0: date_diff; < 0: add 7; == 0: leave as is
-         ifelse(date_diff < 0, date_diff + 7, 0))  # NOTE: ifelse is used for vectorizaiton
+  numeric_diff <- ifelse(date_diff >= 0, date_diff,  # >= 0: date_diff; < 0: add 7; NA: leave as is
+         ifelse(date_diff < 0, date_diff + 7, NA))  # NOTE: ifelse is used for vectorizaiton
   event_dates <- article_data$date_published - numeric_diff
   return (cbind(article_data, event_date = event_dates))
+}
+
+#' @description Last resort method: sets the event described in the article as the
+#' publication date.
+#' @param article_data data.frame containing columns 'article_text' and 'date_published'.
+#' Values in 'date_published' must be Date objects.
+#' @return Original data.frame, with new column 'event_date'.
+#' Values are date objects representing the date of the event described in the article
+try_pdate <- function(article_data) {
+  article_data$event_date[NA_indices] <- training_dat$date_published[NA_indices]
+  return (article_data)
 }
 
 #' @description Converts date to numbered weekday
@@ -52,7 +63,8 @@ weekdayNumber <- function(date_object) {
   return (match(weekdays(date_object), day_list))
 }
 
-names(training_dat)[2] <- 'article_text'
-names(training_dat)[4] <- 'date_published'
+names(training_dat)[3] <- 'article_text'
+names(training_dat)[6] <- 'date_published'
 
 train_with_event <- getEventDate(training_dat)
+train_with_event <- published(train_with_event)
