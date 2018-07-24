@@ -16,17 +16,17 @@ day_from_date <- function(adate = NULL) {
 # So return_days("Monday Tuesday Friday")
 # will return 2 (for Monday)
 return_days <- function(text) {
-  if(!is.na(text)){
-  if(is.character(text)) {
-    day_list <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
-                  "Saturday")
-    res <- as.numeric(which(sapply(day_list, grepl, text, ignore.case = TRUE)))
-    if (length(res) == 0) {
-      res <- NA
-    } else {
-      res<-res[1] # we can add more handling here to deal with multiple weekday mentions
+  if(!is.na(text)) {
+    if(is.character(text)) {
+      day_list <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+                    "Saturday")
+      res <- as.numeric(which(sapply(day_list, grepl, text, ignore.case = TRUE)))
+      if (length(res) == 0) {
+        res <- NA
+      } else {
+        res<-res[1] # we can add more handling here to deal with multiple weekday mentions
+      }
     }
-  }
   } else res <- NA
   return(res)
 }

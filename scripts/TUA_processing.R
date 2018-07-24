@@ -2,7 +2,8 @@ library(readr)
 library(dplyr)
 
 ###
-dir <- "/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization"
+dir <- "~/df-canonicalization/"
+#dir <- "C:/Users/acobw/Desktop/goodlylabs/df-canonicalization/"
 setwd(dir)
 
 ###
@@ -19,6 +20,8 @@ metadata_with_tua <- tua_dat %>%
          date_published = info_article_metadata_date_published,
          TUA = offsets, 
          article_text = info_article_text.x)
+
+#write.csv(metadata_with_tua, 'data/metadata_with_tua.csv')
 
 ###
 tua_parser <- function(tua_text) {
