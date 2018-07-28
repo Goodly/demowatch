@@ -9,7 +9,7 @@ setwd(dir)
 ### read in data
 dat <- read_csv("data/textthresher/dfcrowd1dh_task_run.csv")
 metadata_dat <- read_csv("data/textthresher/dfcrowd1dh_task.csv")
-metadata_with_tua <- read_csv('data/metadata_with_tua.csv')
+metadata_with_tua <- read_csv('data/textthresher/DF_Crowd1.0_DataHunt-TUAS.csv')
 
 ### group task runs by task ID and choose one, merge in publication date and location
 training_dat <- dat %>% 
@@ -89,6 +89,7 @@ label_date <- function(article_data) {  # adds event dates to new 'event_date' c
 ### phase 3: keywords
 
 try_keywords <- function(df) {
+  tempindices <- c()
   for (i in NA_indices) {
     val <- date_from_keyword(df[i, 'TUA'], df[i, 'date_published'])
     if (!is.na(val)) {
@@ -144,3 +145,52 @@ date_from_keyword <- function(text, pdate) { # HOW TO HANDLE MUTLIPLE KEYWORDS B
   if (matches['tomorrow']) return (pdate + 1)
   # etc
 }
+
+alt_date_from_keywords <- function(text, pdate) {
+  if (is.na(text)) return (NA)
+  inputFile <- file("data/stanford-corenlp-full-2018-02-27/input.txt")
+  writeLines(text, inputFile)
+  close(inputFile)
+  ## adjust the following setwd() for your computer
+  setwd("/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization/data/stanford-corenlp-full-2018-02-27")
+  system("java --add-modules java.se.ee -cp '*' -Xmx2g edu.stanford.nlp.pipeline.StanfordCoreNLP -annotators tokenize,ssplit,pos,lemma,ner -file input.txt")
+  library(XML)
+  ## adjust the following setwd() for your computer
+  setwd("/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization")
+  relevantDates <- c()
+  doc <- xmlTreeParse("data/stanford-corenlp-full-2018-02-27/input.txt.xml", useInternal = TRUE)
+  nodes <- getNodeSet(doc, "//NormalizedNER")
+  lapply(nodes, function(n) {
+    relevantDates <<- c(relevantDates, xmlValue(n))
+  })
+  relativeHours <- unique(relevantDates[grepl("^PT[[:digit:]]{2,3}H$", relevantDates)])
+  relativeHours <- as.numeric(substr(relativeHours, 3, nchar(relativeHours) - 1))
+  relativeDays <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}D$", relevantDates)])
+  relativeDays <- as.numeric(substr(relativeDays, 2, nchar(relativeDays) - 1))
+  relativeWeeks <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}W$", relevantDates)])
+  relativeWeeks <- as.numeric(substr(relativeWeeks, 2, nchar(relativeWeeks) - 1))
+  relativeYears <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}Y$", relevantDates)])
+  relativeYears <- as.numeric(substr(relativeYears, 2, nchar(relativeYears) - 1))
+  offsets <- unique(relevantDates[grepl("^OFFSET P-?[[:digit:]]{1,2}D$", relevantDates)])
+  offsets <- as.numeric(substr(offsets, 9, nchar(offsets) - 1))
+  if (!identical(relativeYears, numeric(0))) {
+    return(pdate - ceiling(365 * mean(relativeYears)))
+  } else if (!identical(relativeWeeks, numeric(0))) {
+    return (pdate - ceiling(7 * mean(relativeWeeks)))
+  } else if (!identical(relativeDays, numeric(0))) {
+    return (pdate - ceiling(mean(relativeDays)))
+  } else if (!identical(relativeHours, numeric(0))) {
+    return (pdate - ceiling(mean(relativeHours)) / 24)
+  } else if (!identical(offsets, numeric(0))) {
+    return (pdate + ceiling(mean(offsets))) 
+  } else {
+    return (NA)
+  }
+}
+
+tua_data <- readRDS("data/metadata_table.rds")
+a = c('yesterday', 'a day ago', 'tomorrow')
+b = c(tua_data[[1, 'date_published']], tua_data[[2, 'date_published']], tua_data[[3, 'date_published']])
+c = data.frame(TUA = a, date_published = b)
+NA_indices <- 1:3
+d = try_keywords(df = c)
