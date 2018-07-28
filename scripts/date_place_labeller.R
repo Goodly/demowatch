@@ -89,7 +89,7 @@ label_date <- function(article_data) {  # adds event dates to new 'event_date' c
 ### phase 3: keywords
 
 try_keywords <- function(df) {
-  tempindices <- c()
+  temp_indices <- c()
   for (i in NA_indices) {
     val <- date_from_keyword(df[i, 'TUA'], df[i, 'date_published'])
     if (!is.na(val)) {
@@ -151,6 +151,10 @@ alt_date_from_keywords <- function(text, pdate) {
   inputFile <- file("data/stanford-corenlp-full-2018-02-27/input.txt")
   writeLines(text, inputFile)
   close(inputFile)
+  setwd("/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization")
+  rds <- readRDS("data/metadata_table.rds")
+  # paste(rds$TUA[3][[1]], collapse= '')
+  write("Christmas", file = "data/stanford-corenlp-full-2018-02-27/input.txt")
   ## adjust the following setwd() for your computer
   setwd("/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization/data/stanford-corenlp-full-2018-02-27")
   system("java --add-modules java.se.ee -cp '*' -Xmx2g edu.stanford.nlp.pipeline.StanfordCoreNLP -annotators tokenize,ssplit,pos,lemma,ner -file input.txt")
@@ -163,34 +167,33 @@ alt_date_from_keywords <- function(text, pdate) {
   lapply(nodes, function(n) {
     relevantDates <<- c(relevantDates, xmlValue(n))
   })
+  exactDates <- substr(unique(relevantDates[grepl("[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}", relevantDates)]), 1, 10)
+  noYearDates <- substr(unique(relevantDates[grepl("[[:alpha:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}", relevantDates)]), 5, 10)
   relativeHours <- unique(relevantDates[grepl("^PT[[:digit:]]{2,3}H$", relevantDates)])
   relativeHours <- as.numeric(substr(relativeHours, 3, nchar(relativeHours) - 1))
   relativeDays <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}D$", relevantDates)])
   relativeDays <- as.numeric(substr(relativeDays, 2, nchar(relativeDays) - 1))
+  offsets <- unique(relevantDates[grepl("^OFFSET P-?[[:digit:]]{1,2}D$", relevantDates)])
+  offsets <- as.numeric(substr(offsets, 9, nchar(offsets) - 1))
   relativeWeeks <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}W$", relevantDates)])
   relativeWeeks <- as.numeric(substr(relativeWeeks, 2, nchar(relativeWeeks) - 1))
   relativeYears <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}Y$", relevantDates)])
   relativeYears <- as.numeric(substr(relativeYears, 2, nchar(relativeYears) - 1))
-  offsets <- unique(relevantDates[grepl("^OFFSET P-?[[:digit:]]{1,2}D$", relevantDates)])
-  offsets <- as.numeric(substr(offsets, 9, nchar(offsets) - 1))
-  if (!identical(relativeYears, numeric(0))) {
-    return(pdate - ceiling(365 * mean(relativeYears)))
+  if (!identical(exactDates, character(0))) {
+    return (as.Date(ceiling(mean(as.numeric(as.Date(exactDates))))))
+  } else if (!identical(noYearDates, character(0))) {
+    return (as.Date(ceiling((mean(as.numeric(as.Date(sapply(noYearDates, function(x) paste(substr(pdate, 1, 4), x, sep= '')))))))))
+  } else if (!identical(relativeYears, numeric(0))) {
+    return (pdate - ceiling(365 * mean(relativeYears)))
   } else if (!identical(relativeWeeks, numeric(0))) {
     return (pdate - ceiling(7 * mean(relativeWeeks)))
+  } else if (!identical(offsets, numeric(0))) {
+    return (pdate + ceiling(mean(offsets))) 
   } else if (!identical(relativeDays, numeric(0))) {
     return (pdate - ceiling(mean(relativeDays)))
   } else if (!identical(relativeHours, numeric(0))) {
     return (pdate - ceiling(mean(relativeHours)) / 24)
-  } else if (!identical(offsets, numeric(0))) {
-    return (pdate + ceiling(mean(offsets))) 
   } else {
     return (NA)
   }
 }
-
-tua_data <- readRDS("data/metadata_table.rds")
-a = c('yesterday', 'a day ago', 'tomorrow')
-b = c(tua_data[[1, 'date_published']], tua_data[[2, 'date_published']], tua_data[[3, 'date_published']])
-c = data.frame(TUA = a, date_published = b)
-NA_indices <- 1:3
-d = try_keywords(df = c)
