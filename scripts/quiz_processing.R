@@ -76,9 +76,15 @@ all_q_ans_tbl <- answer_formatter(1)
 
 for (i in 2:nrow(tasks_and_contributors)) {
   ### format the answers
-  print(i)
   ans_tbl <- answer_formatter(i)
   
   ### bind to the first row
   all_q_ans_tbl <- rbind(all_q_ans_tbl, ans_tbl)
 }
+
+listed <- matrix(0, ncol = ncol(all_q_ans_tbl), nrow = nrow(all_q_ans_tbl))
+for (i in 1:nrow(listed)) {
+  for (j in 1:ncol(listed)) {
+    if (length(all_q_ans_tbl[[i, j]]) > 1) {
+      listed[i, j] <- 1}}}             
+listed <- as.data.frame(as.logical(listed))
