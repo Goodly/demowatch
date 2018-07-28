@@ -3,7 +3,11 @@ library(dplyr)
 library(reshape2)
 
 ### CSV processing
+#jacobs_dir <- '../data/textthresher/dfcrowd1dh-2018-06-21T01.csv'
+#dat <- read_csv(dir)
+
 dat <- read_csv("~/df-canonicalization/data/textthresher/dfcrowd1dh-2018-06-21T01.csv")
+
 
 grouped_dat <- dat %>%
   group_by(task_pybossa_id,
