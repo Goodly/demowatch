@@ -1,5 +1,6 @@
 library(readr)
 library(dplyr)
+library(hash)
 
 ### set your work directory
 #dir <- "~/df-canonicalization"
@@ -37,6 +38,8 @@ weekdayNumber <- function(date_object) {
   return (match(weekdays(date_object), day_list))
 }
 
+### OLD VERSION
+
 #' @description Based on weekday mentioned in article text as well as publishing date,
 #' returns the YYYY-MM-DD date of the event described in the TUA
 #' @param article_data data.frame containing columns 'article_text' and 'date_published'.
@@ -60,15 +63,8 @@ names(training_dat)[6] <- 'date_published'
 train_with_event <- getEventDate(training_dat) # returns NA for date published if no weekday found
 
 # ====================================
-# Jacob's Tests
+# Jacob's Functions
 # ====================================
-
-"
-phase1 specific date
-phase2 relative date (weekdays)
-phase3 keywords (yesterday, tomorrow, a day ago, etc)
-phase4 make guess using pdate as proxy
-"
 
 ### loading RDS data file 'metadata_table.rds'
 
@@ -79,53 +75,72 @@ tua_data <- readRDS(file='data/metadata_table.rds')
 NA_indices <- c()  # vector containing NA indices
 
 label_date <- function(article_data) {  # adds event dates to new 'event_date' column
-  processed_data <- try_specific_date(article_data)
-  processed_data <- getEventDate(processed_data)
-  processed_data <- try_keywords(processed_data)
-  processed_data <- try_pdate(processed_data)
+  #processed_data <- try_specific_date(article_data) ...TBD
+  
+  # fixes NA_indices in absence of phase 1
+  NA_indices <<- 1:nrow(article_data)
+  
+  # phase 2: weekdays
+  processed_data <- try_function(getEventDate, article_data)
+  
+  # phase 3: keywords
+  processed_data <- try_function(date_from_keyword, processed_data)
+  
+  # phase 4: date published
+  processed_data <- try_function(use_pdate, processed_data)
+  
+  # create unique id's
+  processed_data <- addUniqueIDs(processed_data)
+  
   return (processed_data)
 }
 
-### phase 3: keywords
+# ====================================
+# Helper Functions
+# ====================================
 
-try_keywords <- function(df) {
+### Base Hierarchy Function
+
+try_function <- function(func, df) {
+  # null check
+  if (is.null(NA_indices)) return (df)
   temp_indices <- c()
   for (i in NA_indices) {
-    val <- date_from_keyword(df[i, 'TUA'], df[i, 'date_published'])
+    val <- func(df[i, 'TUA'], df[[i, 'date_published']])
     if (!is.na(val)) {
       df[i, 'event_date'] <- val
     } else {
       temp_indices <- c(temp_indices, i)
     }
   }
+  df$event_date <- as.Date(df$event_date, origin = as.Date("1970-01-01"))
   NA_indices <<- temp_indices
   return (df)
 }
 
-# ====================================
-# Aaron's Code
-# ====================================
+# phase 1
+# TBD
 
-### phase 4: date published
-
-#' @description Last resort method: sets the event described in the article as the
-#' publication date.
-#' @param article_data data.frame containing columns 'article_text' and 'date_published'.
-#' Values in 'date_published' must be Date objects.
-#' @return Original data.frame, with new column 'event_date'.
-#' Values are date objects representing the date of the event described in the article
-try_pdate <- function(article_data) {
-  article_data$event_date[NA_indices] <- training_dat$date_published[NA_indices] - 1
-  return (article_data)
+# phase 2
+getEventDate <- function(tua, pdate) {
+  # write this as a helper function
+  pdate_weekday_number <- weekdayNumber(pdate)
+  event_weekday_number <- return_days(paste(tua, sep = '', collapse = ''))
+  date_diff <- pdate_weekday_number - event_weekday_number
+  numeric_diff <- ifelse(date_diff > 0, date_diff,  # > 0: date_diff; < 0: add 7; == 0: leave as is
+                         ifelse(date_diff < 0, date_diff + 7, 0))  # NOTE: ifelse is used for vectorizaiton
+  event_dates <- pdate - numeric_diff
+  return (event_dates)
 }
 
-# ====================================
-# 
-# ====================================
+weekdayNumber <- function(date_object) {
+  day_list <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+                "Saturday")
+  return (match(weekdays(date_object), day_list))
+}
 
-### helper functions
-
-date_from_keyword <- function(text, pdate) { # HOW TO HANDLE MUTLIPLE KEYWORDS BEING FOUND?
+# phase 3
+date_from_keyword <- function(text, pdate) {
   # null check
   if (is.na(text)) return (NA)
   
@@ -134,7 +149,9 @@ date_from_keyword <- function(text, pdate) { # HOW TO HANDLE MUTLIPLE KEYWORDS B
   matches <- sapply(keywords, grepl, text, ignore.case = TRUE)
   
   # edge cases
-  if (sum(matches) > 1) stop()  # DO SOMETHING ... possibly create a date range?
+  if (sum(matches) > 1) return ('flag')  # DO SOMETHING ... possibly create a date range?
+  # recommend we review it. shouldn't be common.
+  # impute a flag character, then we can just sort by the character and return for review
   if (sum(matches) == 0) return (NA)
   
   # keyword cases
@@ -146,54 +163,27 @@ date_from_keyword <- function(text, pdate) { # HOW TO HANDLE MUTLIPLE KEYWORDS B
   # etc
 }
 
-alt_date_from_keywords <- function(text, pdate) {
-  if (is.na(text)) return (NA)
-  inputFile <- file("data/stanford-corenlp-full-2018-02-27/input.txt")
-  writeLines(text, inputFile)
-  close(inputFile)
-  setwd("/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization")
-  rds <- readRDS("data/metadata_table.rds")
-  # paste(rds$TUA[3][[1]], collapse= '')
-  write("Christmas", file = "data/stanford-corenlp-full-2018-02-27/input.txt")
-  ## adjust the following setwd() for your computer
-  setwd("/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization/data/stanford-corenlp-full-2018-02-27")
-  system("java --add-modules java.se.ee -cp '*' -Xmx2g edu.stanford.nlp.pipeline.StanfordCoreNLP -annotators tokenize,ssplit,pos,lemma,ner -file input.txt")
-  library(XML)
-  ## adjust the following setwd() for your computer
-  setwd("/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization")
-  relevantDates <- c()
-  doc <- xmlTreeParse("data/stanford-corenlp-full-2018-02-27/input.txt.xml", useInternal = TRUE)
-  nodes <- getNodeSet(doc, "//NormalizedNER")
-  lapply(nodes, function(n) {
-    relevantDates <<- c(relevantDates, xmlValue(n))
-  })
-  exactDates <- substr(unique(relevantDates[grepl("[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}", relevantDates)]), 1, 10)
-  noYearDates <- substr(unique(relevantDates[grepl("[[:alpha:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}", relevantDates)]), 5, 10)
-  relativeHours <- unique(relevantDates[grepl("^PT[[:digit:]]{2,3}H$", relevantDates)])
-  relativeHours <- as.numeric(substr(relativeHours, 3, nchar(relativeHours) - 1))
-  relativeDays <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}D$", relevantDates)])
-  relativeDays <- as.numeric(substr(relativeDays, 2, nchar(relativeDays) - 1))
-  offsets <- unique(relevantDates[grepl("^OFFSET P-?[[:digit:]]{1,2}D$", relevantDates)])
-  offsets <- as.numeric(substr(offsets, 9, nchar(offsets) - 1))
-  relativeWeeks <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}W$", relevantDates)])
-  relativeWeeks <- as.numeric(substr(relativeWeeks, 2, nchar(relativeWeeks) - 1))
-  relativeYears <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}Y$", relevantDates)])
-  relativeYears <- as.numeric(substr(relativeYears, 2, nchar(relativeYears) - 1))
-  if (!identical(exactDates, character(0))) {
-    return (as.Date(ceiling(mean(as.numeric(as.Date(exactDates))))))
-  } else if (!identical(noYearDates, character(0))) {
-    return (as.Date(ceiling((mean(as.numeric(as.Date(sapply(noYearDates, function(x) paste(substr(pdate, 1, 4), x, sep= '')))))))))
-  } else if (!identical(relativeYears, numeric(0))) {
-    return (pdate - ceiling(365 * mean(relativeYears)))
-  } else if (!identical(relativeWeeks, numeric(0))) {
-    return (pdate - ceiling(7 * mean(relativeWeeks)))
-  } else if (!identical(offsets, numeric(0))) {
-    return (pdate + ceiling(mean(offsets))) 
-  } else if (!identical(relativeDays, numeric(0))) {
-    return (pdate - ceiling(mean(relativeDays)))
-  } else if (!identical(relativeHours, numeric(0))) {
-    return (pdate - ceiling(mean(relativeHours)) / 24)
-  } else {
-    return (NA)
+# phase 4
+use_pdate <- function(tua, pdate) {
+  return (pdate)
+}
+
+# create unique id's
+addUniqueIDs <- function(processed_data) {
+  eventMappings <- hash()
+  eventIDs <- c()
+  count <- 1
+  for (i in 1:nrow(processed_data)) {
+    id <- paste(processed_data$event_place[i], as.character(processed_data$event_date[i]), sep='')
+    idless <- paste(processed_data$event_place[i], as.character(processed_data$event_date[i] - 1), sep='')
+    idmore <- paste(processed_data$event_place[i], as.character(processed_data$event_date[i] + 1), sep='')
+    if (is.null(names(eventMappings)) | !is.element(id, keys(eventMappings))) {
+      eventMappings[[id]] = count; eventMappings[[idless]] = count; eventMappings[[idmore]] = count
+      eventIDs <- c(eventIDs, count)
+      count <- count + 1
+    } else {
+      eventIDs <- c(eventIDs, eventMappings[[id]])
+    }
   }
+  return (cbind(processed_data, ids = eventIDs))
 }
