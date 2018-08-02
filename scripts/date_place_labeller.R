@@ -1,6 +1,5 @@
 library(readr)
 library(dplyr)
-library(hash)
 
 ### set your work directory
 #dir <- "~/df-canonicalization"
@@ -169,6 +168,7 @@ use_pdate <- function(tua, pdate) {
 }
 
 # create unique id's
+library(hash)
 addUniqueIDs <- function(processed_data) {
   eventMappings <- hash()
   eventIDs <- c()
@@ -187,3 +187,6 @@ addUniqueIDs <- function(processed_data) {
   }
   return (cbind(processed_data, ids = eventIDs))
 }
+
+new_data <- label_date(tua_data)
+# write_rds(new_data, path = "tuas_with_ids.rds")
