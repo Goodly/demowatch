@@ -74,7 +74,7 @@ tua_data <- readRDS(file='data/metadata_table.rds')
 NA_indices <- c()  # vector containing NA indices
 
 label_date <- function(article_data) {  # adds event dates to new 'event_date' column
-  #processed_data <- try_specific_date(article_data) ...TBD
+  # processed_data <- try_function(getSpecificDate, article_data)
   
   # fixes NA_indices in absence of phase 1
   NA_indices <<- 1:nrow(article_data)
