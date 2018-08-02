@@ -3,11 +3,7 @@ library(dplyr)
 library(reshape2)
 
 ### CSV processing
-#jacobs_dir <- '../data/textthresher/dfcrowd1dh-2018-06-21T01.csv'
-#dat <- read_csv(dir)
-
 dat <- read_csv("~/df-canonicalization/data/textthresher/dfcrowd1dh-2018-06-21T01.csv")
-
 
 grouped_dat <- dat %>%
   group_by(task_pybossa_id,
@@ -86,9 +82,36 @@ for (i in 2:nrow(tasks_and_contributors)) {
   all_q_ans_tbl <- rbind(all_q_ans_tbl, ans_tbl)
 }
 
-listed <- matrix(0, ncol = ncol(all_q_ans_tbl), nrow = nrow(all_q_ans_tbl))
-for (i in 1:nrow(listed)) {
-  for (j in 1:ncol(listed)) {
-    if (length(all_q_ans_tbl[[i, j]]) > 1) {
-      listed[i, j] <- 1}}}             
-listed <- as.data.frame(as.logical(listed))
+### expanding list answers(
+onehotter <- function(df) {
+  # all answers in the dataset by question
+  unique_answers <- lapply(df, function(lst) {return(unique(unlist(lst)))})
+  
+  # empty container the size of the fully onehot encoded dataframe
+  onehotted_ans_mat <- matrix(0, ncol = length(unlist(unique_answers)), nrow = nrow(df))
+  
+  # produces the names of all the columns
+  columns <- list()
+  col_position <- 1
+  for (question in names(unique_answers)) {
+    answers <- unique_answers[[question]]
+    for (i in 1:length(answers)) {
+      if (answers[i] < 10) {
+        answer_number <- paste0("0", answers[i])
+      } else {
+        answer_number <- answers[i]
+      }
+      columns <- append(columns, paste0(question, ".", answer_number))
+      ans_in_col <- unlist(lapply(df[, c(question)], function(x) {answers[i] %in% x}))
+      onehotted_ans_mat[, col_position] <- ans_in_col
+      print(col_position)
+      col_position <- col_position + 1
+    }
+  }
+  colnames(onehotted_ans_mat) <- columns
+  return(as.data.frame(onehotted_ans_mat))
+}
+
+onehot_answers <- onehotter(all_q_ans_tbl)
+
+final_answers_w_metadata <- cbind(as.data.frame(tasks_and_contributors), onehot_answers)
