@@ -24,9 +24,27 @@ training_dat <- dat %>%
            "info_article_metadata_date_published"))
 #write_csv(training_dat, "data/metadata_table.csv")
 
-### source functions from Nick's script
-source("scripts/Day2Dates.R")
+### source functions from Nick's script : helper function
+# This function takes some text and returns the position on the weekday list
+# So return_days("Monday Tuesday Friday")
+# will return 2 (for Monday)
+return_days <- function(text) {
+  if(!is.na(text)) {
+    if(is.character(text)) {
+      day_list <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+                    "Saturday")
+      res <- as.numeric(which(sapply(day_list, grepl, text, ignore.case = TRUE)))
+      if (length(res) == 0) {
+        res <- NA
+      } else {
+        res<-res[1] # we can add more handling here to deal with multiple weekday mentions
+      }
+    }
+  } else res <- NA
+  return(res)
+}
 
+## helper functions
 #' @description Converts date to numbered weekday
 #' @param date_object Some date object or sequence of date objects
 #' @return Integer representing the date_object's day of the week.
@@ -36,8 +54,6 @@ weekdayNumber <- function(date_object) {
                 "Saturday")
   return (match(weekdays(date_object), day_list))
 }
-
-### OLD VERSION
 
 #' @description Based on weekday mentioned in article text as well as publishing date,
 #' returns the YYYY-MM-DD date of the event described in the TUA
@@ -55,15 +71,11 @@ getEventDate <- function(article_data) {
   return (cbind(article_data, event_date = event_dates))
 }
 
-### testing on training_dat
+### adjustments
 names(training_dat)[3] <- 'article_text'
 names(training_dat)[6] <- 'date_published'
 
 train_with_event <- getEventDate(training_dat) # returns NA for date published if no weekday found
-
-# ====================================
-# Jacob's Functions
-# ====================================
 
 ### loading RDS data file 'metadata_table.rds'
 
@@ -74,16 +86,20 @@ tua_data <- readRDS(file='data/metadata_table.rds')
 NA_indices <- c()  # vector containing NA indices
 
 label_date <- function(article_data) {  # adds event dates to new 'event_date' column
-  # processed_data <- try_function(getSpecificDate, article_data)
-  
-  # fixes NA_indices in absence of phase 1
+  # fixes initial NA_indices
   NA_indices <<- 1:nrow(article_data)
   
+  # phase 1 : specific dates
+  processed_data <- try_function(getSpecificDate, article_data)
+  
   # phase 2: weekdays
-  processed_data <- try_function(getEventDate, article_data)
+  processed_data <- try_function(getEventDate, processed_data)
   
   # phase 3: keywords
   processed_data <- try_function(date_from_keyword, processed_data)
+  
+  # phase 3 and 1/2: stanford nlp
+  processed_data <- try_function(stanford_nlp, processed_data)
   
   # phase 4: date published
   processed_data <- try_function(use_pdate, processed_data)
@@ -112,19 +128,49 @@ try_function <- function(func, df) {
       temp_indices <- c(temp_indices, i)
     }
   }
-  df$event_date <- as.Date(df$event_date, origin = as.Date("1970-01-01"))
   NA_indices <<- temp_indices
   return (df)
 }
 
 # phase 1
-# TBD
+getSpecificDate <- function(tua, pdate) {
+  if (is.na(pdate)) return (NA)
+  matches <- regmatches(tua, regexpr("[[:alpha:]]{3,9}.? [[:digit:]]{1,2}", tua))
+  matches <- Filter(validDate, matches)
+  if (identical(matches, character(0))) return (NA)
+  # if (length(matches) > 1) return ('flag') # DO SOMETHING...probably ask for user to reassess
+  splitpoint <- as.numeric(gregexpr(pattern = " ", matches[1]))
+  month <- substring(matches[1], 1, last = splitpoint - 1)
+  day <- substring(matches[1], splitpoint + 1)
+  month <- switch(month, January = "01", Jan. = "01", February = "02", Feb. = "02", March = "03", 
+                  Mar. = "03", April = "04", Apr. = "04", May = "05", June = "06", Jun. = "06",
+                  July = "07", Jul. = "07", August = "08", Aug. = "08", September = "09", Sept. = "09",
+                  October = "10", Oct. = "10", November = "11", Nov. = "11", December = "12", Dec. = "12")
+  day <- switch(as.numeric(day), "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12",
+                "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27",
+                "28", "29", "30", "31")
+  if (identical(month(pdate), "12") &  identical(month(pdate), 1)) {
+    year <- as.character(year(pdate) - 1)
+  } else {
+    year <- as.character(year(pdate))
+  }
+  return (as.Date(paste(year, month, day, sep = '-')))
+}
+
+# helper function for phase 1
+validDate <- function(match) {
+  keywords = "January|Jan.|February|Feb.|March|Mar.|April|Apr.|May|June|Jun.|July|Jul.|August|Aug.
+  |September|Sept.|October|Oct.|November|Nov.|December|Dec."
+  return (as.logical(sum(grepl(keywords, match))))
+}
 
 # phase 2
 getEventDate <- function(tua, pdate) {
   # write this as a helper function
+  if (is.na(pdate)) return (NA)
   pdate_weekday_number <- weekdayNumber(pdate)
   event_weekday_number <- return_days(paste(tua, sep = '', collapse = ''))
+  if (is.na(event_weekday_number)) return (NA)
   date_diff <- pdate_weekday_number - event_weekday_number
   numeric_diff <- ifelse(date_diff > 0, date_diff,  # > 0: date_diff; < 0: add 7; == 0: leave as is
                          ifelse(date_diff < 0, date_diff + 7, 0))  # NOTE: ifelse is used for vectorizaiton
@@ -162,6 +208,50 @@ date_from_keyword <- function(text, pdate) {
   # etc
 }
 
+# phase 3 and 1/2
+## NOTE: Will need to manually download Stanford NLP, b/c no space on Github
+stanford_nlp <- function(tua, pdate) {
+  setwd("/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization")
+  rds <- readRDS("data/metadata_table.rds")
+  paste(rds$TUA[3][[1]], collapse= '')
+  write("Christmas", file = "data/stanford-corenlp-full-2018-02-27/input.txt")
+  ## adjust the following setwd() for your computer
+  setwd("/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization/data/stanford-corenlp-full-2018-02-27")
+  system("java --add-modules java.se.ee -cp '*' -Xmx2g edu.stanford.nlp.pipeline.StanfordCoreNLP -annotators tokenize,ssplit,pos,lemma,ner -file input.txt")
+  library(XML)
+  ## adjust the following setwd() for your computer
+  setwd("/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization")
+  relevantDates <- c()
+  doc <- xmlTreeParse("data/stanford-corenlp-full-2018-02-27/input.txt.xml", useInternal = TRUE)
+  nodes <- getNodeSet(doc, "//NormalizedNER")
+  lapply(nodes, function(n) {
+    relevantDates <<- c(relevantDates, xmlValue(n))
+  })
+  relativeHours <- unique(relevantDates[grepl("^PT[[:digit:]]{2,3}H$", relevantDates)])
+  relativeHours <- as.numeric(substr(relativeHours, 3, nchar(relativeHours) - 1))
+  relativeDays <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}D$", relevantDates)])
+  relativeDays <- as.numeric(substr(relativeDays, 2, nchar(relativeDays) - 1))
+  offsets <- unique(relevantDates[grepl("^OFFSET P-?[[:digit:]]{1,2}D$", relevantDates)])
+  offsets <- as.numeric(substr(offsets, 9, nchar(offsets) - 1))
+  relativeWeeks <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}W$", relevantDates)])
+  relativeWeeks <- as.numeric(substr(relativeWeeks, 2, nchar(relativeWeeks) - 1))
+  relativeYears <- unique(relevantDates[grepl("^P[[:digit:]]{1,2}Y$", relevantDates)])
+  relativeYears <- as.numeric(substr(relativeYears, 2, nchar(relativeYears) - 1))
+  if (!identical(relativeYears, numeric(0))) {
+    return (pdate - ceiling(365 * mean(relativeYears)))
+  } else if (!identical(relativeWeeks, numeric(0))) {
+    return (pdate - ceiling(7 * mean(relativeWeeks)))
+  } else if (!identical(offsets, numeric(0))) {
+    return (pdate + ceiling(mean(offsets))) 
+  } else if (!identical(relativeDays, numeric(0))) {
+    return (pdate - ceiling(mean(relativeDays)))
+  } else if (!identical(relativeHours, numeric(0))) {
+    return (pdate - ceiling(mean(relativeHours)) / 24)
+  } else {
+    return (NA)
+  }
+}
+
 # phase 4
 use_pdate <- function(tua, pdate) {
   return (pdate)
@@ -189,4 +279,4 @@ addUniqueIDs <- function(processed_data) {
 }
 
 new_data <- label_date(tua_data)
-# write_rds(new_data, path = "tuas_with_ids.rds")
+write_rds(new_data, path = "data/tuas_with_ids.rds")
