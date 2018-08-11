@@ -1,6 +1,9 @@
 library(readr)
 library(dplyr)
 library(reshape2)
+library(cluster)
+library(ggplot2)
+library(fpc)
 
 ### CSV processing
 dat <- read_csv("~/df-canonicalization/data/textthresher/dfcrowd1dh-2018-06-21T01.csv")
@@ -114,4 +117,34 @@ onehotter <- function(df) {
 
 onehot_answers <- onehotter(all_q_ans_tbl)
 
-final_answers_w_metadata <- cbind(as.data.frame(tasks_and_contributors), onehot_answers)
+final_answers_w_metadata <- cbind(as.data.frame(tasks_and_contributors), 
+                                  onehot_answers)
+IDs <- readRDS('data/tuas_with_ids.rds')
+
+### joining IDs into features
+ids_and_features <- final_answers_w_metadata %>% 
+  inner_join(IDs, by = c("task_pybossa_id" = "task_id")) %>% 
+  select(-c(article_number, 
+            case_number, 
+            event_place, 
+            date_published, 
+            TUA, 
+            article_text, 
+            filename, 
+            event_date))
+
+### calculate dissimilarity matrix
+gower_dist <- ids_and_features %>% 
+  filter(ids == 1) %>% 
+  select(-c(task_pybossa_id, contributor_id, ids)) %>%
+  daisy(metric = c("gower"))
+
+### clustering
+aggl_clust <- hclust(gower_dist, method = "complete")
+
+### cluster analysis
+sil_widths <- c()
+for (i in 2:6) {
+  sil_widths[i - 1] <- cluster.stats(gower_dist, clustering = cutree(aggl_clust, k = i))["avg.silwidth"][[1]]
+}
+

@@ -1,0 +1,74 @@
+Number,Type,Comments
+0.01,Additive,
+1.01,Additive ,"We plan to update the scheme in the future, such that this question will become contradictory. "
+1.02,Additive,
+1.03,Additive ,Except for the contradictory combination of 1.03.04 and 1.03.03
+1.04,Additive,
+1.05,Additive,
+1.06,Additive,
+1.07,Additive,
+1.08,Additive,
+1.10,Additive,
+1.11,Ambiguous,Perhaps we need some margin by which estimates can differ. Estimates of 500 and 550 may be describing the same event. Estimates of 200 and 1000 almost certainly wouldn't be.
+1.12,Ambiguous,"See reasons listed in Q1.11, but even more so because we are now relying on crowdworkers to translate vague words into concrete numerals."
+1.13,Additive,
+1.14,Additive,
+1.15,Additive,
+1.16,Additive,
+1.17,Additive,
+1.18,Additive,
+1.19,Additive,
+1.20,Additive,
+1.21,Additive,
+1.22,Additive,"Additive within some margin of difference, contradictory otherwise"
+1.23,Additive,
+1.24,Additive,
+1.25,Additive,
+1.26,Additive,
+1.27,Additive,
+1.28,Additive,
+1.29,Additive,
+1.30,Additive,
+1.31,Additive,
+1.33,Additive,"Additive for adjacent options, contradictory otherwise."
+1.35,Additive,"Additive for adjacent options, contradictory otherwise."
+1.36,Additive,"Additive for adjacent options, contradictory otherwise."
+3.01,Contradictory,"Additive for ""info not given"""
+3.02,Additive,
+3.03,Additive," Additive within some margin of difference, contradictory otherwise"
+3.04,Additive," Additive within some margin of difference, contradictory otherwise"
+3.05,Additive,
+3.06,Additive,
+3.07,Additive,"All combinations of 3.07.01 and other options, excluding 3.07.02, are contradictory. All combinations of 3.07.02 and other options, excluding 3.07.01, are contradictory. All other combinations of two or more options are additive."
+3.08,Additive,
+3.09,Additive,
+4.01,Additive,
+4.03,Additive,
+4.04,Additive,"Additive within some margin of difference, contradictory otherwise."
+4.05,Additive,
+4.06,Additive,
+4.07,Additive,"Additive for adjacent options, contradictory otherwise."
+4.08,Additive,
+4.09,Additive,"Additive within some margin of difference, contradictory otherwise."
+4.10,Additive,
+4.11,Additive,"Additive for adjacent options, contradictory otherwise."
+4.12,Additive,
+4.13,Additive,"Additive within some margin of difference, contradictory otherwise."
+4.17,Additive,
+4.19,Additive,"Additive for adjacent options, contradictory otherwise."
+5.01,Additive,
+5.02,Additive,
+5.03,Additive,
+5.04,Additive,
+5.05,Additive,
+5.06,Additive,
+5.07,Additive,
+5.08,Additive,
+6.01,Contradictory," Contradictory, but additive for ""info not given"""
+6.02,Additive,
+6.04,Additive,"Additive for adjacent options, contradictory otherwise."
+6.06,Additive,"Additive for adjacent options, contradictory otherwise."
+6.07,Contradictory," Contradictory, but additive for ""info not given"""
+6.08,Additive,
+6.09,Contradictory," Contradictory, but additive for ""info not given"""
+6.10,Contradictory," Contradictory, but additive for ""info not given"""
