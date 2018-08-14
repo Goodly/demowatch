@@ -1,6 +1,5 @@
 library(readr)
 library(dplyr)
-library(reshape2)
 library(cluster)
 library(ggplot2)
 library(fpc)
@@ -133,18 +132,17 @@ ids_and_features <- final_answers_w_metadata %>%
             filename, 
             event_date))
 
-### calculate dissimilarity matrix
-gower_dist <- ids_and_features %>% 
-  filter(ids == 1) %>% 
-  select(-c(task_pybossa_id, contributor_id, ids)) %>%
-  daisy(metric = c("gower"))
+### calculate question weights
+weights <- read_csv('data/scheme_q_types.csv')
+weights[, 2][weights[, 2] == "Additive"] <- 0.1
+weights[, 2][weights[, 2] == "Ambiguous"] <- 0.5
+weights[, 2][weights[, 2] == "Contradictory"] <- 1
+weights <- weights %>% mutate(weights = as.numeric(Type), q_name = as.character(Number)) %>% select(5, 4)
 
-### clustering
-aggl_clust <- hclust(gower_dist, method = "complete")
+q_ans_combos <- data.frame(col = colnames(ids_and_features[, -c(1, 2, 297)]))
+q_ans_combos$q_name <- substr(q_ans_combos$col, 0, 4)
 
-### cluster analysis
-sil_widths <- c()
-for (i in 2:6) {
-  sil_widths[i - 1] <- cluster.stats(gower_dist, clustering = cutree(aggl_clust, k = i))["avg.silwidth"][[1]]
-}
+weights <- weights %>% right_join(q_ans_combos, by = c("q_name"))
+weights$weights[is.na(weights$weights)] <- 0
 
+write_csv(weights, "scheme_q_weights.csv")
