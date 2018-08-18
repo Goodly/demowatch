@@ -139,10 +139,17 @@ weights[, 2][weights[, 2] == "Ambiguous"] <- 0.5
 weights[, 2][weights[, 2] == "Contradictory"] <- 1
 weights <- weights %>% mutate(weights = as.numeric(Type), q_name = as.character(Number)) %>% select(5, 4)
 
+for (i in 1:length(weights$q_name)) {
+  if (nchar(weights$q_name[i]) != 4) {
+    weights$q_name[i] <- paste0(weights$q_name[[i]], "0")
+  }
+}
+
 q_ans_combos <- data.frame(col = colnames(ids_and_features[, -c(1, 2, 297)]))
 q_ans_combos$q_name <- substr(q_ans_combos$col, 0, 4)
 
 weights <- weights %>% right_join(q_ans_combos, by = c("q_name"))
 weights$weights[is.na(weights$weights)] <- 0
 
-write_csv(weights, "scheme_q_weights.csv")
+write_csv(weights, "data/scheme_q_weights.csv")
+

@@ -1,4 +1,4 @@
-weights <- read.csv('scheme_q_weights.csv')
+weights <- read.csv('data/scheme_q_weights.csv')
 
 #' Processes a table of question-answers from TextThresher for a given id, and
 #' determines whether or not clustering is appropriate.
@@ -24,7 +24,7 @@ check_cluster <- function(tbl, id, pg_cutoff = 0.9) {
   
   # clustering
   aggl_clust <- hclust(gower_dist, method = "complete")
-  
+  plot(aggl_clust)
   # analysis
   pg <- c()
   for (i in 2:6) {
