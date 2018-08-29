@@ -1,155 +1,126 @@
-library(readr)
-library(dplyr)
-library(cluster)
-library(ggplot2)
-library(fpc)
+#' Takes in raw taskrun data pulled from TextThresher and re-encodes it into 
+#' a wide-format, one-hot encoded. Each row corresponds to a single taskrun.
+#'
+#' @param qs_ans_tbl Taskrun table
 
-### CSV processing
-dat <- read_csv("~/df-canonicalization/data/textthresher/dfcrowd1dh-2018-06-21T01.csv")
-
-grouped_dat <- dat %>%
-  group_by(task_pybossa_id,
+quiz_processor <- function(qs_ans_tbl, labeled_metadata_tua) {
+  library(readr)
+  library(dplyr)
+  library(cluster)
+  library(fpc)
+  
+  grouped <- qs_ans_tbl %>%
+    group_by(task_pybossa_id,
+             contributor_id,
+             topic_number,
+             question_number,
+             answer_number) %>%
+    select(task_pybossa_id,
            contributor_id,
            topic_number,
            question_number,
            answer_number) %>%
-  select(task_pybossa_id,
-         contributor_id,
-         topic_number,
-         question_number,
-         answer_number) %>%
-  group_by(task_pybossa_id ,
-           contributor_id,
-           topic_number,
-           question_number) %>%
-  summarize(answer_list = list(unique(answer_number))) 
-
-grouped_dat$question_number <- sapply(grouped_dat$question_number, 
-                                      function(x) {if (x < 10) {
-                                        return(paste0(0, x))
-                                      } else {
-                                        return(as.character(x))}})
-
-grouped_dat <- grouped_dat %>% mutate(question_number = paste(topic_number, 
-                                                              question_number, 
-                                                              sep = "."))
-grouped_dat <- grouped_dat[, c(1, 2, 4, 5)]
-
-all_q <- sort(unique(grouped_dat$question_number))
-tasks_and_contributors <- grouped_dat %>%
-  group_by(task_pybossa_id, contributor_id) %>%
-  summarize() %>% 
-  na.omit()
-
-col_names <- c("task", "contributor", all_q)
-all_answers <- matrix(0, ncol = length(all_q) + 2, 
-                      nrow = nrow(tasks_and_contributors))
-all_answers[, 1:2] <- as.matrix(tasks_and_contributors)
-colnames(all_answers) <- col_names
-
-### formatter function
-
-answer_formatter <- function(tbl_row) {
-  ### retrieve task and contributor
-  task <- tasks_and_contributors[[tbl_row, 1]]
-  contributor <- tasks_and_contributors[[tbl_row, 2]]
+    group_by(task_pybossa_id ,
+             contributor_id,
+             topic_number,
+             question_number) %>%
+    summarize(answer_list = list(unique(answer_number))) 
   
-  ### access the answers
-  sub_table <- grouped_dat %>%
-    filter(task_pybossa_id == task & contributor_id == contributor)
-  sub_answers <- as.data.frame(t(sub_table[, 3:4]))
+  grouped$question_number <- sapply(grouped$question_number, 
+                                        function(x) {if (x < 10) {
+                                          return(paste0(0, x))
+                                        } else {
+                                          return(as.character(x))}})
   
-  ### transform answers tall to wide
-  columns <- unlist(sub_answers[1, ])
-  sub_answers <- as.data.frame(sub_answers[c(FALSE, TRUE), ])
-  colnames(sub_answers) <- columns
-
-  ### fill in columns for missing questions
-  missing_q <- setdiff(all_q, columns)
-  missing_ans <- as.data.frame(matrix(0, ncol = length(missing_q)))
-  colnames(missing_ans) <- missing_q
+  grouped <- grouped %>% mutate(question_number = paste(topic_number, 
+                                                                question_number, 
+                                                                sep = "."))
+  grouped <- grouped[, c(1, 2, 4, 5)]
   
-  ### bind to answered questions and reorder
-  all_q_ans <- cbind(sub_answers, missing_ans)[, all_q]
-  return(all_q_ans)
-}
-
-all_q_ans_tbl <- answer_formatter(1)
-
-for (i in 2:nrow(tasks_and_contributors)) {
-  ### format the answers
-  ans_tbl <- answer_formatter(i)
+  all_q <- sort(unique(grouped$question_number))
+  tasks_and_contributors <- grouped %>%
+    group_by(task_pybossa_id, contributor_id) %>%
+    summarize() %>% 
+    na.omit()
   
-  ### bind to the first row
-  all_q_ans_tbl <- rbind(all_q_ans_tbl, ans_tbl)
-}
-
-### expanding list answers(
-onehotter <- function(df) {
-  # all answers in the dataset by question
-  unique_answers <- lapply(df, function(lst) {return(unique(unlist(lst)))})
+  col_names <- c("task", "contributor", all_q)
+  all_answers <- matrix(0, ncol = length(all_q) + 2, 
+                        nrow = nrow(tasks_and_contributors))
+  all_answers[, 1:2] <- as.matrix(tasks_and_contributors)
+  colnames(all_answers) <- col_names
   
-  # empty container the size of the fully onehot encoded dataframe
-  onehotted_ans_mat <- matrix(0, ncol = length(unlist(unique_answers)), nrow = nrow(df))
+  ### formatter function
   
-  # produces the names of all the columns
-  columns <- list()
-  col_position <- 1
-  for (question in names(unique_answers)) {
-    answers <- unique_answers[[question]]
-    for (i in 1:length(answers)) {
-      if (answers[i] < 10) {
-        answer_number <- paste0("0", answers[i])
-      } else {
-        answer_number <- answers[i]
+  answer_formatter <- function(tbl_row) {
+    ### retrieve task and contributor
+    task <- tasks_and_contributors[[tbl_row, 1]]
+    contributor <- tasks_and_contributors[[tbl_row, 2]]
+    
+    ### access the answers
+    sub_table <- grouped %>%
+      filter(task_pybossa_id == task & contributor_id == contributor)
+    sub_answers <- as.data.frame(t(sub_table[, 3:4]))
+    
+    ### transform answers tall to wide
+    columns <- unlist(sub_answers[1, ])
+    sub_answers <- as.data.frame(sub_answers[c(FALSE, TRUE), ])
+    colnames(sub_answers) <- columns
+  
+    ### fill in columns for missing questions
+    missing_q <- setdiff(all_q, columns)
+    missing_ans <- as.data.frame(matrix(0, ncol = length(missing_q)))
+    colnames(missing_ans) <- missing_q
+    
+    ### bind to answered questions and reorder
+    all_q_ans <- cbind(sub_answers, missing_ans)[, all_q]
+    return(all_q_ans)
+  }
+  
+  all_q_ans_tbl <- answer_formatter(1)
+  
+  for (i in 2:nrow(tasks_and_contributors)) {
+    ### format the answers
+    ans_tbl <- answer_formatter(i)
+    
+    ### bind to the first row
+    all_q_ans_tbl <- rbind(all_q_ans_tbl, ans_tbl)
+  }
+  
+  ### expanding list answers(
+  onehotter <- function(df) {
+    # all answers in the dataset by question
+    unique_answers <- lapply(df, function(lst) {return(unique(unlist(lst)))})
+    
+    # empty container the size of the fully onehot encoded dataframe
+    onehotted_ans_mat <- matrix(0, ncol = length(unlist(unique_answers)), nrow = nrow(df))
+    
+    # produces the names of all the columns
+    columns <- list()
+    col_position <- 1
+    for (question in names(unique_answers)) {
+      answers <- unique_answers[[question]]
+      for (i in 1:length(answers)) {
+        if (answers[i] < 10) {
+          answer_number <- paste0("0", answers[i])
+        } else {
+          answer_number <- answers[i]
+        }
+        columns <- append(columns, paste0(question, ".", answer_number))
+        ans_in_col <- unlist(lapply(df[, c(question)], function(x) {answers[i] %in% x}))
+        onehotted_ans_mat[, col_position] <- ans_in_col
+        print(col_position)
+        col_position <- col_position + 1
       }
-      columns <- append(columns, paste0(question, ".", answer_number))
-      ans_in_col <- unlist(lapply(df[, c(question)], function(x) {answers[i] %in% x}))
-      onehotted_ans_mat[, col_position] <- ans_in_col
-      print(col_position)
-      col_position <- col_position + 1
     }
+    colnames(onehotted_ans_mat) <- columns
+    return(as.data.frame(onehotted_ans_mat))
   }
-  colnames(onehotted_ans_mat) <- columns
-  return(as.data.frame(onehotted_ans_mat))
+  
+  onehot_answers <- onehotter(all_q_ans_tbl)
+  
+  final_answers_w_metadata <- cbind(as.data.frame(tasks_and_contributors), 
+                                    onehot_answers)
+  final_answers_labelled <- final_answers_w_metadata %>% 
+    inner_join(select(labelled_metadata_tua, "task_id", "ids"), by = c("task_pybossa_id" = "task_id"))
+  return(final_answers_labelled)
 }
-
-onehot_answers <- onehotter(all_q_ans_tbl)
-
-final_answers_w_metadata <- cbind(as.data.frame(tasks_and_contributors), 
-                                  onehot_answers)
-IDs <- readRDS('data/tuas_with_ids.rds')
-
-### joining IDs into features
-ids_and_features <- final_answers_w_metadata %>% 
-  inner_join(IDs, by = c("task_pybossa_id" = "task_id")) %>% 
-  select(-c(article_number, 
-            case_number, 
-            event_place, 
-            date_published, 
-            TUA, 
-            article_text, 
-            filename, 
-            event_date))
-
-### calculate question weights
-weights <- read_csv('data/scheme_q_types.csv')
-weights[, 2][weights[, 2] == "Additive"] <- 0.1
-weights[, 2][weights[, 2] == "Ambiguous"] <- 0.5
-weights[, 2][weights[, 2] == "Contradictory"] <- 1
-weights <- weights %>% mutate(weights = as.numeric(Type), q_name = as.character(Number)) %>% select(5, 4)
-
-for (i in 1:length(weights$q_name)) {
-  if (nchar(weights$q_name[i]) != 4) {
-    weights$q_name[i] <- paste0(weights$q_name[[i]], "0")
-  }
-}
-
-q_ans_combos <- data.frame(col = colnames(ids_and_features[, -c(1, 2, 297)]))
-q_ans_combos$q_name <- substr(q_ans_combos$col, 0, 4)
-
-weights <- weights %>% right_join(q_ans_combos, by = c("q_name"))
-weights$weights[is.na(weights$weights)] <- 0
-
-write_csv(weights, "data/scheme_q_weights.csv")
-

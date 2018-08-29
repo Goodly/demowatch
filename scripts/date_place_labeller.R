@@ -1,27 +1,27 @@
 library(readr)
 library(dplyr)
-
+library(lubridate)
 ### set your work directory
 #dir <- "~/df-canonicalization"
-dir <- "/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization"
-setwd(dir)
+# dir <- "/Users/aaronhoby/Documents/BerkeleySem3/DecidingForce/df-canonicalization"
+# setwd(dir)
 
 ### read in data
-dat <- read_csv("data/textthresher/dfcrowd1dh_task_run.csv")
-metadata_dat <- read_csv("data/textthresher/dfcrowd1dh_task.csv")
-metadata_with_tua <- read_csv('data/textthresher/DF_Crowd1.0_DataHunt-TUAS.csv')
-
-### group task runs by task ID and choose one, merge in publication date and location
-training_dat <- dat %>% 
-  group_by(task_id) %>%
-  slice(1) %>% 
-  inner_join(metadata_dat, by = c("task_id" = "id")) %>%
-  select(c("task_id", 
-           "info_article_article_number",
-           "info_article_text.x",
-           "info_highlights_0_case_number",
-           "info_article_metadata_city",
-           "info_article_metadata_date_published"))
+# dat <- read_csv("data/textthresher/dfcrowd1dh_task_run.csv")
+# metadata_dat <- read_csv("data/textthresher/dfcrowd1dh_task.csv")
+# metadata_with_tua <- read_csv('data/textthresher/DF_Crowd1.0_DataHunt-TUAS.csv')
+# 
+# ### group task runs by task ID and choose one, merge in publication date and location
+# training_dat <- dat %>% 
+#   group_by(task_id) %>%
+#   slice(1) %>% 
+#   inner_join(metadata_dat, by = c("task_id" = "id")) %>%
+#   select(c("task_id", 
+#            "info_article_article_number",
+#            "info_article_text.x",
+#            "info_highlights_0_case_number",
+#            "info_article_metadata_city",
+#            "info_article_metadata_date_published"))
 #write_csv(training_dat, "data/metadata_table.csv")
 
 ### source functions from Nick's script : helper function
@@ -72,14 +72,14 @@ getEventDate <- function(article_data) {
 }
 
 ### adjustments
-names(training_dat)[3] <- 'article_text'
-names(training_dat)[6] <- 'date_published'
-
-train_with_event <- getEventDate(training_dat) # returns NA for date published if no weekday found
-
-### loading RDS data file 'metadata_table.rds'
-
-tua_data <- readRDS(file='data/metadata_table.rds')
+# names(training_dat)[3] <- 'article_text'
+# names(training_dat)[6] <- 'date_published'
+# 
+# train_with_event <- getEventDate(training_dat) # returns NA for date published if no weekday found
+# 
+# ### loading RDS data file 'metadata_table.rds'
+# 
+# tua_data <- readRDS(file='data/metadata_table.rds')
 
 ### defining hierachical date labeller
 
@@ -98,8 +98,8 @@ label_date <- function(article_data) {  # adds event dates to new 'event_date' c
   # phase 3: keywords
   processed_data <- try_function(date_from_keyword, processed_data)
   
-  # phase 3 and 1/2: stanford nlp
-  processed_data <- try_function(stanford_nlp, processed_data)
+  # # phase 3 and 1/2: stanford nlp
+  # processed_data <- try_function(stanford_nlp, processed_data)
   
   # phase 4: date published
   processed_data <- try_function(use_pdate, processed_data)
@@ -278,5 +278,5 @@ addUniqueIDs <- function(processed_data) {
   return (cbind(processed_data, ids = eventIDs))
 }
 
-new_data <- label_date(tua_data)
-write_rds(new_data, path = "data/tuas_with_ids.rds")
+# new_data <- label_date(tua_data)
+# write_rds(new_data, path = "data/tuas_with_ids.rds")
