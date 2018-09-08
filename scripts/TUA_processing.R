@@ -5,17 +5,30 @@
 #' publishing date, etc.)
 #' @param tua_tbl A dataframe containing the TUA texts and keys for joining
 #' to the metadata
+#' @param taskrun_tbl A dataframe containing the raw taskruns
 #' 
 #' @import readr
 #' @import dplyr
 
-tua_processor <- function(metadata_tbl, tua_tbl) {
+tua_processor <- function(metadata_tbl, tua_tbl, taskrun_tbl) {
   library(readr)
   library(dplyr)
   
+  ### group task runs by task ID and choose one, merge in publication date and location
+  metadata <- taskrun_tbl %>% 
+    group_by(task_id) %>%
+    slice(1) %>% 
+    inner_join(metadata_tbl, by = c("task_id" = "id")) %>%
+    select(c("task_id", 
+             "info_article_article_number",
+             "info_article_text.x",
+             "info_highlights_0_case_number",
+             "info_article_metadata_city",
+             "info_article_metadata_date_published"))
+  
   ###
   metadata_with_tua <- tua_tbl %>% 
-    inner_join(metadata_tbl, 
+    inner_join(metadata, 
                by = c("article_number" = "info_article_article_number", 
                       "case_number" = "info_highlights_0_case_number")) %>%
     select(-c("topic_name")) %>%
