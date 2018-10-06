@@ -42,27 +42,3 @@ cluster_compacter <- function(cluster_tbl, labelled_qs_ans, id) {
   
   return(clusters_and_features)
 }
-
-# id = 3
-# cluster_tbl <- check_cluster(labelled_qs_ans, id, 0.9)
-# print(id)
-# compact_cluster <- cluster_compacter(cluster_tbl, labelled_qs_ans, id) %>%
-# mutate(ids = max(canonicalized_features$ids) + cluster)
-# canonicalized_features <- rbind(canonicalized_features, compact_cluster)
-
-# canonicalized_features <- data.frame()
-# for (id in unique(labelled_qs_ans$ids)) {
-#   cluster_tbl <- check_cluster(labelled_qs_ans, id, 0.9)
-#   print(id)
-#   if (sum(dim(canonicalized_features)) == 0) {
-#     compact_cluster <- cluster_compacter(cluster_tbl, labelled_qs_ans, id) %>%
-#       mutate(ids = cluster)
-#     canonicalized_features <- compact_cluster
-#   } else {
-#     compact_cluster <- cluster_compacter(cluster_tbl, labelled_qs_ans, id) %>%
-#       mutate(ids = max(canonicalized_features$ids) + cluster)
-#     canonicalized_features <- rbind(canonicalized_features,
-#                                     compact_cluster)
-#   }
-# }
-# canonicalized_features <- canonicalized_features %>% select(-cluster)
