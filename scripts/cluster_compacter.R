@@ -4,11 +4,13 @@ cluster_compacter <- function(cluster_tbl, labelled_qs_ans, id) {
   ### helper function for compacting
   compact <- function(df, cluster_num) {
     new_df <- df[1, ]
+    new_df[1, 1] <- max(df[, 1])
     for (i in 3:ncol(df)) {
       new_df[1, i] <- max(df[, i])
     }
-    new_df <- cbind(new_df[1, 3:ncol(df)],
-                    cluster = c(cluster_num))
+    new_df <- cbind(task_pybossa_id = new_df[1, 1], 
+              cbind(new_df[1, 3:ncol(df)],
+                    cluster = c(cluster_num)))
     return(new_df)
   }
   
@@ -18,8 +20,8 @@ cluster_compacter <- function(cluster_tbl, labelled_qs_ans, id) {
   size <- max(cluster_tbl$cluster)
   if (size == 1) {
     return(id_and_features %>%
-             select(-c(task_pybossa_id, contributor_id)) %>%
-             mutate(cluster = 1) %>% slice(1))
+             select(-c(contributor_id)) %>% 
+             mutate(cluster = 1) %>% slice(1)) # task_pybossa_id, 
   }
   
   dataframe_list <- vector("list", size)
@@ -40,3 +42,27 @@ cluster_compacter <- function(cluster_tbl, labelled_qs_ans, id) {
   
   return(clusters_and_features)
 }
+
+# id = 3
+# cluster_tbl <- check_cluster(labelled_qs_ans, id, 0.9)
+# print(id)
+# compact_cluster <- cluster_compacter(cluster_tbl, labelled_qs_ans, id) %>%
+# mutate(ids = max(canonicalized_features$ids) + cluster)
+# canonicalized_features <- rbind(canonicalized_features, compact_cluster)
+
+# canonicalized_features <- data.frame()
+# for (id in unique(labelled_qs_ans$ids)) {
+#   cluster_tbl <- check_cluster(labelled_qs_ans, id, 0.9)
+#   print(id)
+#   if (sum(dim(canonicalized_features)) == 0) {
+#     compact_cluster <- cluster_compacter(cluster_tbl, labelled_qs_ans, id) %>%
+#       mutate(ids = cluster)
+#     canonicalized_features <- compact_cluster
+#   } else {
+#     compact_cluster <- cluster_compacter(cluster_tbl, labelled_qs_ans, id) %>%
+#       mutate(ids = max(canonicalized_features$ids) + cluster)
+#     canonicalized_features <- rbind(canonicalized_features,
+#                                     compact_cluster)
+#   }
+# }
+# canonicalized_features <- canonicalized_features %>% select(-cluster)
