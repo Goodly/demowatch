@@ -68,6 +68,7 @@ guessing_date_in_text <- mapply(function(a,b,c)
   c=text_day,
   SIMPLIFY=FALSE)
 
+# Appending guessed publication date into TUA's
 guessing_date_in_text <- lapply(guessing_date_in_text, function(x) as.character(x))
 guessing_date_in_text <- c(do.call(rbind, guessing_date_in_text))
 all3clean$text_date <- guessing_date_in_text
