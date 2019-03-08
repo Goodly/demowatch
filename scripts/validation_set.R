@@ -4,7 +4,6 @@ library(readr)
 dir <- "~/df-canonicalization/"
 setwd(dir)
 
-
 reading_set <- read.csv("notebooks/reading_set.csv")
 
 file_names <- list.files("data/city")
@@ -36,7 +35,6 @@ for (obj in 1:length(unique_cities)) {
                          list(current_city, max(hand_labels$ID) + 1))
   }
 }
-
 
 labelled_tbl <- cbind(reading_set %>% filter(city == "Charleston"),
                       hand_labels %>%
