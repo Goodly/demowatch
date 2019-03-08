@@ -46,6 +46,6 @@ for (obj in 2:length(unique_cities)) {
   labelled_tbl <- rbind(labelled_tbl, cbind(city_tbl, ID = city_labels$ID))
 }
 
-# labelled table organized by city
+# labelled table grouped by city
 labelled_tbl <- labelled_tbl %>% select(city, date, text, ID)
 write.csv(labelled_tbl, "validation_set.csv")
