@@ -14,7 +14,7 @@ tua_processor <- function(metadata_tbl, tua_tbl, taskrun_tbl) {
   library(readr)
   library(dplyr)
   
-  ### group task runs by task ID and choose one, merge in publication date and location
+  ### Group task runs by task ID and choose one, merge in publication date and location
   metadata <- taskrun_tbl %>% 
     group_by(task_id) %>%
     slice(1) %>% 
@@ -26,7 +26,7 @@ tua_processor <- function(metadata_tbl, tua_tbl, taskrun_tbl) {
              "info_article_metadata_city",
              "info_article_metadata_date_published"))
   
-  ###
+  ### Append TUA text to metadata table.
   metadata_with_tua <- tua_tbl %>% 
     inner_join(metadata, 
                by = c("article_number" = "info_article_article_number", 
@@ -37,7 +37,7 @@ tua_processor <- function(metadata_tbl, tua_tbl, taskrun_tbl) {
            date_published = info_article_metadata_date_published,
            TUA = offsets)
   
-  ###
+  ### Function designed to clean TUA text, removing so-called trash characters.
   tua_parser <- function(tua_text) {
     # trash characters to remove
     garbage <- c("”", "“")
@@ -55,6 +55,10 @@ tua_processor <- function(metadata_tbl, tua_tbl, taskrun_tbl) {
     without_extra <- split_tua[seq(2, length(split_tua), 2)]
     return(list(without_extra))
   }
+  
+  ### Apply above function to table to clean TUA text.
   metadata_with_tua$TUA <- sapply(metadata_with_tua$TUA, tua_parser)
+  
+  ### Return table containing metadata and clean TUA text, one row per task ID
   return(metadata_with_tua)
 }

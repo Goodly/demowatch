@@ -9,6 +9,9 @@ quiz_processor <- function(qs_ans_tbl, labeled_metadata_tua) {
   library(cluster)
   library(fpc)
   
+  ### Groups dat by task id, contributor id, topic number, 
+  # question number combinations, and aggregates answer numbers into sets, 
+  # where applicable.
   grouped <- qs_ans_tbl %>%
     group_by(task_pybossa_id,
              contributor_id,
@@ -26,23 +29,30 @@ quiz_processor <- function(qs_ans_tbl, labeled_metadata_tua) {
              question_number) %>%
     summarize(answer_list = list(unique(answer_number))) 
   
+  ### Adds leading 0s before question numbers, where applicable.
   grouped$question_number <- sapply(grouped$question_number, 
                                         function(x) {if (x < 10) {
                                           return(paste0(0, x))
                                         } else {
                                           return(as.character(x))}})
   
+  ### Appends topic number to front of question number.
   grouped <- grouped %>% mutate(question_number = paste(topic_number, 
                                                                 question_number, 
                                                                 sep = "."))
+  ### Drops (now unnecessary) topic number column.
   grouped <- grouped[, c(1, 2, 4, 5)]
   
+  ### Generates sequence of all question numbers
   all_q <- sort(unique(grouped$question_number))
+  
+  ### Generates table of only task and contributor id combinations. 
   tasks_and_contributors <- grouped %>%
     group_by(task_pybossa_id, contributor_id) %>%
     summarize() %>% 
     na.omit()
   
+  ### Pivots table such that question numbers become column names.
   col_names <- c("task", "contributor", all_q)
   all_answers <- matrix(0, ncol = length(all_q) + 2, 
                         nrow = nrow(tasks_and_contributors))
@@ -76,6 +86,8 @@ quiz_processor <- function(qs_ans_tbl, labeled_metadata_tua) {
     return(all_q_ans)
   }
   
+  ### Add question answers to table (in relevant question number columns)
+  # and format properly
   all_q_ans_tbl <- answer_formatter(1)
   
   for (i in 2:nrow(tasks_and_contributors)) {
@@ -86,7 +98,7 @@ quiz_processor <- function(qs_ans_tbl, labeled_metadata_tua) {
     all_q_ans_tbl <- rbind(all_q_ans_tbl, ans_tbl)
   }
   
-  ### expanding list answers(
+  ### expanding list answers
   onehotter <- function(df) {
     # all answers in the dataset by question
     unique_answers <- lapply(df, function(lst) {return(unique(unlist(lst)))})
@@ -116,11 +128,15 @@ quiz_processor <- function(qs_ans_tbl, labeled_metadata_tua) {
     return(as.data.frame(onehotted_ans_mat))
   }
   
+  ### Produce one-hot encoded table.
   onehot_answers <- onehotter(all_q_ans_tbl)
   
+  ### Append metadata to one-hot encoded table.
   final_answers_w_metadata <- cbind(as.data.frame(tasks_and_contributors), 
                                     onehot_answers)
   final_answers_labelled <- final_answers_w_metadata %>% 
     inner_join(select(labelled_metadata_tua, "task_id", "ids"), by = c("task_pybossa_id" = "task_id"))
+  
+  ### Return one-hot table, with one row per taskrun.
   return(final_answers_labelled)
 }
