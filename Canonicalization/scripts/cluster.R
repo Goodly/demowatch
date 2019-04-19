@@ -12,7 +12,7 @@ check_cluster <- function(tbl, id, pg_cutoff = 0.9) {
   require(cluster)
   require(fpc)
   
-  # jaccard similarity helper function
+  # jaccard similarity helper function: returns coefficient used to measure the similarity between finite sets
   jaccard <- function(df, margin) {
     if (margin == 1 | margin == 2) {
       M_00 <- apply(df, margin, sum) == 0
@@ -27,12 +27,18 @@ check_cluster <- function(tbl, id, pg_cutoff = 0.9) {
       return(j_sim)
     } else break
   }
-  
   # weights will be defined outside and are constant regardless of what rows 
   # are input
+  
+  # filter input tbl for specific id and assign to id_tbl
   id_tbl <- tbl %>%
     filter(ids == id) %>%
     select(-c(task_pybossa_id, contributor_id, ids)) 
+  
+  # if there are two nodes (rows of id_tbl) and the jaccard similarity coefficient > 0.8, 
+  # return input tbl filtered for specific id with cluster = 1
+  # if there are two nodes and the JSC is not > 0.8, filter for id and return with cluster = [1,2]
+  # else if there is one node, then just return the table with cluster = 1
   
   num_nodes <- nrow(id_tbl)
   
@@ -54,15 +60,17 @@ check_cluster <- function(tbl, id, pg_cutoff = 0.9) {
              mutate(cluster = 1))
   }
   
-  # dissimilarity
+  # compute Gower distance for dissimilarity (for use in agglomerative clustering)
   gower_dist <- id_tbl %>%
     daisy(metric = c("gower"), weights = weights$weights)
   
-  # clustering
+  # Plot clustering
   aggl_clust <- hclust(gower_dist, method = "complete")
   plot(aggl_clust)
   
-  # analysis
+  # Analysis of clustering; creates vector of distance-based statistics. If most recent
+  # statistic > Pearson Gamma cutoff, then return the agglomerated table with cluster = number of clusters created
+  # else if Pearson Gamma cutoff is never exceeded, return filtered table with cluster = 1
   pg <- c()
   for (i in 2:(num_nodes - 1)) {
     pg[i - 1] <-

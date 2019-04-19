@@ -7,6 +7,7 @@ cluster_compacter <- function(cluster_tbl, labelled_qs_ans, id) {
   clusters = unique(cluster_tbl$cluster)
   
   ### if there is only one cluster, compact and return
+  ### else, for each cluster, compact and add into table to return
   size <- max(clusters)
   if (size == 1) {
     TUAs = paste(id_and_features$task_pybossa_id, id_and_features$contributor_id, sep = ': ', collapse = ' // ')
