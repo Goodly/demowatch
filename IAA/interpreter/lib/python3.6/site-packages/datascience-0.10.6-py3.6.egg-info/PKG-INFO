@@ -1,0 +1,12 @@
+Metadata-Version: 1.1
+Name: datascience
+Version: 0.10.6
+Summary: A Jupyter notebook Python library for introductory data science
+Home-page: https://github.com/dsten/datascience
+Author: John DeNero, David Culler, Alvin Wan, Sam Lau
+Author-email: ds8-instructors@berkeley.edu
+License: UNKNOWN
+Download-URL: https://github.com/dsten/datascience/archive/0.10.6.zip
+Description: UNKNOWN
+Keywords: data,tools,berkeley
+Platform: UNKNOWN

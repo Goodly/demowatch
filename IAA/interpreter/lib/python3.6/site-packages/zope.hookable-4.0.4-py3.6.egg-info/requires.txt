@@ -1,0 +1,11 @@
+setuptools
+
+[docs]
+Sphinx
+
+[test]
+zope.testing
+
+[testing]
+nose
+coverage

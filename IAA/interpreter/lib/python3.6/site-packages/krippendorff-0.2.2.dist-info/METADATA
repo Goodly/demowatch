@@ -1,0 +1,63 @@
+Metadata-Version: 2.1
+Name: krippendorff
+Version: 0.2.2
+Summary: Fast computation of the Krippendorff's alpha measure.
+Home-page: https://github.com/pln-fing-udelar/fast-krippendorff
+Author: Santiago Castro
+Author-email: sacastro@fing.edu.uy
+Maintainer: Santiago Castro
+Maintainer-email: sacastro@fing.edu.uy
+License: GPL 3.0
+Keywords: Krippendorff,alpha,agreement,reliability,coding,coders,units,values
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+
+Krippendorff
+============
+
+Fast computation of `Krippendorff's
+alpha <https://en.wikipedia.org/wiki/Krippendorff%27s_alpha>`__
+agreement measure.
+
+Based on `Thomas Grill
+implementation <https://github.com/grrrr/krippendorff-alpha>`__. Works
+on Python 3+.
+
+Example usage
+-------------
+
+Given a reliability data matrix, run:
+
+.. code:: python
+
+    import krippendorff
+
+    krippendorff.alpha(reliability_data)
+
+See ``sample.py`` and ``alpha`` docstring for more.
+
+Installation
+------------
+
+.. code:: shell
+
+    pip install krippendorff
+
+Caveats
+-------
+
+The implementation is fast as it doesn't do a nested loop for the
+coders. However, V should be small, since a matrix of VxV it's used.
+
+

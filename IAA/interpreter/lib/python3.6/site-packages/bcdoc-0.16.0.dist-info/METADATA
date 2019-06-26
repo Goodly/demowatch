@@ -1,0 +1,36 @@
+Metadata-Version: 2.0
+Name: bcdoc
+Version: 0.16.0
+Summary: ReST document generation tools for botocore.
+Home-page: https://github.com/botocore/bcdoc
+Author: Amazon Web Services
+Author-email: UNKNOWN
+License: Apache License 2.0
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Natural Language :: English
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Requires-Dist: six (>=1.8.0,<2.0.0)
+Requires-Dist: docutils (>=0.10)
+Requires-Dist: ordereddict (==1.1); python_version=="2.6"
+
+bcdoc
+=====
+
+|Build Status|
+
+
+Tools to help document botocore-based projects
+
+.. |Build Status| image:: https://travis-ci.org/boto/bcdoc.png?branch=develop
+   :target: https://travis-ci.org/boto/bcdoc
+
+

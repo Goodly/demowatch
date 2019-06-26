@@ -1,0 +1,31 @@
+For researchers
+howmany rows,of each category, howmany contribs, how many tasks per contrib, highlights per contrib, h/t/contributor
+Every potentially useful metric that could be used for rseearchers
+
+output:
+same metrics as before,
+what moves on, how many of who's contributions passed through
+
+what would've happened with 1 less and 1 more user
+
+IAA behavior--if things almost make it
+count things that almost make it
+
+Demo ofalgorithms
+Show math notation just for 1% of crowd--explain with mathematical models
+Feel really smart at the end of the demo--step by step
+Slide deck with too many words on it
+Easy to strip words off an talk through slides
+
+Go/no go for stakeholder demo on 8/16 or 8/23
+
+
+REPORT:
+For overall batch and each article:
+
+Input Stats:numUsers, numHighlights, numHighlights per each Category, maxnumHighlights from a user, minNumHighlights from a user, 
+std  numHighlight per user, average highlights per user.  Average highlights per user per cat, std numHighlights per user per cat,
+krippendorff score per cat
+
+Implement as a dictionary, have another filethat's just report helper functions and canf ill most of it out; have a helper func 
+converting the dictionaryto a csv

@@ -1,0 +1,6 @@
+folium==0.2.1
+sphinx
+setuptools
+pytest
+coverage==3.7.1
+coveralls==0.5

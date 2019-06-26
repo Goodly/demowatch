@@ -1,0 +1,18 @@
+.tmp
+.DS_Store
+
+# emacs artifacts
+*~
+*#
+
+# vim artifacts
+*.swp
+
+# intellij artifacts
+.idea/
+*.iml
+
+# python artifacts
+__pycache__/
+*.pyc
+pip-selfcheck.json
