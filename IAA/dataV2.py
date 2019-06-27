@@ -307,11 +307,17 @@ def stringAnsToInt(schemadata, answer, qlabel):
     ansLabel = ansMatched['answer_label'].iloc[0]
     numAnswer = parse(ansLabel,'A')
     return numAnswer
+
+### Modified for DW project.
 def findLabel(qlabels, qnum):
     for label in qlabels:
-        if str(qnum) in label:
+        if len(str(qnum)) < 3:
             if parse(label, 'Q') == qnum:
                 return label
+        else:
+            if parse(label, 'T') == int(str(qnum)[0]):
+                if parse(label, 'Q') == int(str(qnum)[1:]):
+                    return label
 
 def find_answers_checklist(ans_data, qnum):
     columns = ans_data.head(0)
@@ -330,6 +336,8 @@ def find_answers_checklist(ans_data, qnum):
         for i in range(ansCount):
             answers.append(aNum)
     return answers, users
+
+### Modified for DW project.
 def find_matching_columns(cols, qnum):
     #This needs columns to be in ascending order by question number
     out = []
@@ -337,8 +345,13 @@ def find_matching_columns(cols, qnum):
     answerCols = []
     for col in cols:
         if 'Q' in col and '.' in col:
-            if parse(col, 'Q', '.') == qnum:
-                out.append(col)
+            if len(str(qnum)) < 3:
+                if parse(col, 'Q', '.') == qnum:
+                    out.append(col)
+            else:
+                if parse(col, 'T', '.') == int(str(qnum)[0]):
+                    if parse(col, 'Q', '.') == int(str(qnum)[1:]):
+                        out.append(col)
     return np.unique(out)
 
 

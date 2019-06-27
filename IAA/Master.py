@@ -17,8 +17,9 @@ def calculate_scores_master(directory, tua_file = None, iaa_dir = None, scoring_
     launch_Weighting(scoring_dir)
     print("SORTING POINTS")
     pointSort(scoring_dir, tua_file)
-    print("----------------SPLITTING-----------------------------------")
-    splitcsv(scoring_dir)
+    ### Commented out because may not be updated to current output format??
+    ###print("----------------SPLITTING-----------------------------------")
+    ###splitcsv(scoring_dir)
 
 def load_args():
     parser = argparse.ArgumentParser()
@@ -44,8 +45,8 @@ if __name__ == '__main__':
     args = load_args()
     input_dir = './data/Setup_Testing_4-18-19'
     tua_file = './mt/allTUAS.csv'
-    output_dir = None
-    scoring_dir  = None
+    output_dir = './output/Setup_Testing_4-18-19'
+    scoring_dir  = './scoring/Setup_Testing_4-18-19'
     rep_file = './UserRepScores.csv'
     if args.input_dir:
         input_dir = args.input_dir

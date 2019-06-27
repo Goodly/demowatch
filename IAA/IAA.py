@@ -219,7 +219,7 @@ def score(article, ques, data, repDF = None, thirtyDf = None, hardCodedTypes = F
         # TODO: verify if these still exist, if they do, bring up to speed with new output formats
         return run_2step_unitization(data, article, ques, repDF)
     answers = get_question_answers(data, article, ques)
-    users =get_question_userid(data, article, ques)
+    users = get_question_userid(data, article, ques)
     print('art', article,ques)
     numUsers = get_num_users(data, article, ques)
     print('nu', numUsers, users)
