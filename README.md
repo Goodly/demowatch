@@ -18,7 +18,7 @@ How can you tell if the event being described in one news article is the same ev
 
 This is especially relevant for us because we’re interested in understanding events, but all we have are news texts. The texts do not have a convenient tag attached to them denoting a unique event ID, which we need to access. 
 
-We can approximate the unique events through a process called **canonicalization**. This is the work that Sidney, Jacob, Aaron, Schuyler, Avik, and Devesh have developed. See the subsection below for more details.
+We can approximate the unique events through a process called **canonicalization**. This is the work that Sidney, Jacob, Aaron, Schuyler, Karen, Avik, and Devesh have developed. See the subsection below for more details.
 
 Finally, after our canonicalization algorithm has generated a canonical set of events (with associated actions, features, and timesteps), we can perform a quantitative analysis of police-protester interactions. This portion of the project is continually being expanded. Thus far, we have focused primarily on modelling interactions within and among events using regression analysis and dynamic Bayesian networks (probabilistic models). 
 
