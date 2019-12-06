@@ -1,4 +1,4 @@
-#' Processes a table of question-answers from TextThresher for a given id, and
+#' Processes a table of question-answers from TagWorks for a given id, and
 #' determines whether or not clustering is appropriate.
 #'
 #' @param tbl The input table of identifying information (task number,
@@ -7,7 +7,7 @@
 #' @param pg_cutoff The cutoff value for Pearson's Gamma. Describes the quality
 #' required for a clustering to be accepted.
 
-check_cluster <- function(tbl, id, pg_cutoff = 0.9) {
+check_cluster <- function(tbl, weights, id, pg_cutoff = 0.9) {
   require(dplyr)
   require(cluster)
   require(fpc)
@@ -76,7 +76,7 @@ check_cluster <- function(tbl, id, pg_cutoff = 0.9) {
     pg[i - 1] <-
       cluster.stats(gower_dist,
                     clustering = cutree(aggl_clust, k = i))["pearsongamma"][[1]]
-    if (pg[i - 1] > pg_cutoff) {
+    if (pg[i - 1] > pg_cutoff) { # Doesnt work for identical entries?
       return(tbl %>%
                filter(ids == id) %>%
                select(c(task_pybossa_id, contributor_id)) %>%

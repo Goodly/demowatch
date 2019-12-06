@@ -20,8 +20,6 @@ source("scripts/TUA_processing.R")
 source("scripts/date_place_labeller.R")
 source("scripts/quiz_processing.R")
 source("scripts/question_weights.R")
-source("scripts/cluster.R")
-source("scripts/cluster_compacter.R")
 source("scripts/canonicalizer.R")
 
 # process TUA data 
@@ -36,8 +34,9 @@ labelled_qs_ans <- quiz_processor(raw_qs_ans, labelled_metadata_tua)
 # cluster, collapse, canonicalize
 weights <- question_weighter(scheme_qs, labelled_qs_ans)
 
-canonicalized_features <- canonicalizer(labelled_qs_ans)
+canonicalized_features <- canonicalizer(labelled_qs_ans, weights)
 
 ### OUTPUT
 write_csv(canonicalized_features, "data/canonicalized_features.csv")
+saveRDS(canonicalized_features, file = "tests/data/canonicalized_features_reference.rds")
 

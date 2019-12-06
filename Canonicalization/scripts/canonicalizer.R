@@ -7,11 +7,14 @@
 #' @param pg Pearson's gamma for clustering. Describes the minimum 
 #' "quality" of clustering needed for a clustering to be accepted.
 
-canonicalizer <- function(labelled_qs_ans, pg = 0.8) {
+source("scripts/cluster.R")
+source("scripts/cluster_compacter.R")
+
+canonicalizer <- function(labelled_qs_ans, weights = NULL, pg = 0.8) {
   canonicalized_features <- NA
   
   for (id in unique(labelled_qs_ans$ids)) {
-    cluster_tbl <- check_cluster(labelled_qs_ans, id, pg)
+    cluster_tbl <- check_cluster(labelled_qs_ans, weights, id, pg)
     print(id)
     if (is.na(canonicalized_features)) {
       compact_cluster <- cluster_compacter(cluster_tbl, labelled_qs_ans, id) %>%
