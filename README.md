@@ -2,6 +2,10 @@
 
 Authors: Sidney Le, Lucy Portnoff, Schuyler Ross, Aaron Ngai, Isanette Carreon
 
+Editor: Nick Adams
+
+Editor's note: The section of this READ.me file discussing annotator consensus may need more editing for clarity.
+
 ### THE IDEA 
 
 Sociological theory concerning protest movements, and the events they manifest in, is missing something. In particular, it is missing a significant empirical foundation — a way to perform natural experiments or retroactive studies to determine **how exactly these events unfold**. What actions in what sequence cause, say, violence to occur at a rally or a march? Without empirical analysis, causal linkages between actions and their consequences are difficult to establish.
@@ -58,16 +62,16 @@ Conversely, the right hand side shows a series of schema questions that dynamica
 
 Overall, users can contribute to a growing body of research about police-protester interactions, simply by interpreting relevant news articles for computational parsing and modeling. If especially proactive, one can even appear on the Goodly Labs leaderboard!
 
-### INTER-ANNOTATOR AGREEMENT (IAA) 
+### Finding Consensus among Annotators (Not INTER-ANNOTATOR AGREEMENT (IAA)) 
+EDITOR'S NOTE: some information in this section, particularly the description of what IAA is, has been inaccurate because Goodly's naming of its alrgorithms was erroneously conflating answer-consensus-finding with the related-but-different task of testing the reliability of questions or highlight prompts. So, I'm editing this section's intro text.) 
+Let’s begin by considering the motivation for creating an annotator consensus-finding algorithm. As described above, each annotation task is assigned to multiple crowdworkers on the internet. For the sake of simplicity, let’s say that ten individuals complete each task. The output of TagWorks, then, is a set of ten responses per task. This is not particularly useful. We do not want ten (potentially conflicting) datasets for every uploaded TUA; instead, we want each TUA to be associated with a single, canonical set of data. Hence the algorithm: our computational machinery for condensing multiple users’ responses into a single, canonical data collection.
 
-Let’s begin by considering the motivation for creating an inter-annotator agreement (IAA) algorithm. As described above, each annotation task is assigned to multiple crowdworkers on the internet. For the sake of simplicity, let’s say that ten individuals complete each task. The output of TagWorks, then, is a set of ten responses per task. This is not particularly useful. We do not want ten (potentially conflicting) datasets for every uploaded TUA; instead, we want each TUA to be associated with a single, canonical set of data. Hence the IAA algorithm: our computational machinery for condensing multiple users’ responses into a single, canonical data collection.
-
-Formally, we can evaluate IAA in classic algorithmic terms--by considering its inputs, outputs, and behavior.
+Formally, we can evaluate annotator consensus in classic algorithmic terms--by considering its inputs, outputs, and behavior.
 - *Input*: The three CSV files produced by TagWorks (schema, highlighter, and question-answer), in which every individual user’s responses are stored in separate rows.
 - *Output*: A single CSV file in which rows correspond to single questions in particular task runs, with all users’ disparate responses condensed into a single answer set.
 - *Behavior*: Use Krippendorf’s Alpha and other mathematical processes to determine levels of agreement between multiple users’ answers, evaluate whether they can be reduced to a single answer (set) per question, perform the reduction if possible, and ensure that agreement holds along chains of logically dependent questions.
 
-Running the IAA code requires a bit of setup work on the part of the user. Follow the steps detailed below. (NOTE: the following information is accurate as of September 18th, 2019. It may need to be updated as future iterations of IAA code are released).
+Running the IAA code requires a bit of setup work on the part of the user. Follow the steps detailed below. (
 1. **Download the input files.** First you will need to download copies of the TagWorks output files for your project--specifically, the question-answer, highlight, and schema CSVs. These will serve as the input files for the IAA code. Some of your colleagues should have TagWorks admin access to retrieve the files, if you do not personally. Two important notes: (1) make sure the files are unzipped before proceeding, and (2) do not change the names of the files, even slightly.
 2. **Clone the GitHub repo.** Using the standard git clone procedure, clone the DemoWatch GitHub repo onto your local machine (or, if it already exists locally, git pull to make sure your copy is accurate). 
 3. **Create the relevant directories.** Navigate to the IAA folder in the DemoWatch repo. Once inside, you’ll need to create three new sub-folders: one in the ‘data’ folder, one in the ‘output’ folder, and one in the ‘scoring’ folder. Please give all three new folders the same name. While the particular content of the name does not matter, it would be useful to include the date that you’re running the IAA code (e.g., “setup_testing_4-26-19”).
