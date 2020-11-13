@@ -32,7 +32,7 @@ class Article(object):
         article_day = util.day_from_date(self.article_date)
         event_day = util.event_day(self.text)
         if event_day:
-            difference = (article_day - event_day) mod 7
+            difference = (article_day - event_day) % 7
             if difference == 0:
                 difference = 7
             self.event_date = util.date_diff(self.article_date, difference)
