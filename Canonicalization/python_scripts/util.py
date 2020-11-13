@@ -1,5 +1,12 @@
 import datetime
 
+def convert_gzip(path):
+    """
+    Converts files at path folder to JSONs
+    str path: path to folder to convert
+    """
+    pass
+
 def day_from_date(date_string):
     """
     Gets the day of the week of a given date.
@@ -34,4 +41,4 @@ def date_diff(date, diff):
     int diff: number of days to go back
     str return: the date diff days before param date
     """
-    pass
+    return date - datetime.timedelta(days=diff)
