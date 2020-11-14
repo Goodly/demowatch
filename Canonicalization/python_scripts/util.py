@@ -8,8 +8,8 @@ def convert_gzip(path):
     str path: path to folder to convert
     """
     with gzip.open(path, 'rb') as f_in:
-    with open(path[:-3], 'wb') as f_out:
-        shutil.copyfileobj(f_in, f_out)
+        with open(path[:-3], 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
     
 
 def day_from_date(date_string):
