@@ -4,12 +4,26 @@ import shutil
 
 def convert_gzip(path):
     """
-    Converts files at path folder to JSONs
+    Converts files at path folder to JSONs.
     str path: path to folder to convert
     """
     with gzip.open(path, 'rb') as f_in:
         with open(path[:-3], 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)
+
+def flatten_tuas(tua_dict):
+    """
+    Flattens nested dictionary of TUAs.
+    dict tua_dict: dictionary to flatten
+    """
+    new_dict = {}
+    for tua_type in tua_dict:
+        tua_group = tua_dict[tua_type]
+        tua_list = []
+        for k in tua_group:
+            tua_list += tua_group[k]
+        new_dict[tua_type] = tua_list
+    return new_dict
 
 def day_from_date(date_string):
     """

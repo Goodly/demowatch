@@ -1,6 +1,7 @@
 # Create a class for articles
 import util
 import json
+from tua import Tua
 
 class Article(object):
     """Newspaper article describing an event."""
@@ -44,8 +45,12 @@ class Article(object):
         """
         Creates and stores TUA objects for each TUA noted in this article
         """
-        tua_dict = json.loads(open(self.path + "/annotations.json").read())["tuas"]
+        raw_tuas = json.loads(open(self.path + "/annotations.json").read())["tuas"]
+        tua_dict = util.flatten_tuas(raw_tuas)
         for tua_type in tua_dict:
-        	tua_group = tua_dict[tua_type]
-        	
-        	print(k)
+            for t in tua_dict[tua_type]:
+                text = t[2].replace("[", "").replace("]", "")
+                tua = Tua(t[0], t[1], text.strip(), tua_type)
+                self.tuas.append(tua)
+        for t in self.tuas:
+            t.set_article(self)
