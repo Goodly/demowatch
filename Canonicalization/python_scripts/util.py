@@ -5,7 +5,10 @@ def convert_gzip(path):
     Converts files at path folder to JSONs
     str path: path to folder to convert
     """
-    pass
+    with gzip.open(path, 'rb') as f_in:
+        with open(path[:-3], 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+            
 
 def day_from_date(date_string):
     """
@@ -41,4 +44,5 @@ def date_diff(date, diff):
     int diff: number of days to go back
     str return: the date diff days before param date
     """
-    return date - datetime.timedelta(days=diff)
+    event_date = datetime.datetime.strptime(date, '%Y-%m-%d') - datetime.timedelta(days=diff)
+    return event_date.strftime('%Y-%m-%d')

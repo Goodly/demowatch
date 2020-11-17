@@ -1,5 +1,6 @@
 # Create a class for articles
 import util
+import json
 
 class Article(object):
     """Newspaper article describing an event."""
@@ -9,22 +10,22 @@ class Article(object):
         """
         self.path = path
         self.tuas = []
-        util.convert_gzip(self.path)
-        extract_info()
+        #util.convert_gzip(self.path)
+        self.extract_info()
 
-    def extract_info():
+    def extract_info(self):
         """
         Sets the data in the files at the filepath to instance attributes.
         """
-        metadata = eval(open(self.path + "metadata.json").read())
-        self.text = open(self.path + 'text.txt', 'r').read()
+        metadata = json.loads(open(self.path + "/metadata.json").read())
+        self.text = open(self.path + '/text.txt', 'r').read().split("\n\n")[1]
         self.id = metadata["filename"].split(".")[0]
         self.article_date = metadata["date_published"]
-        self.event_date = set_event_date()
+        self.set_event_date()
         self.city, self.periodical = metadata["city"].split("-")
-        set_tuas()
+        self.set_tuas()
 
-    def set_event_date():
+    def set_event_date(self):
         """
         Sets the date of the event described in the article to instance attributes.
         """
@@ -39,8 +40,12 @@ class Article(object):
         else:
             self.event_date = self.article_date
 
-    def set_tuas():
+    def set_tuas(self):
         """
         Creates and stores TUA objects for each TUA noted in this article
         """
-        pass
+        tua_dict = json.loads(open(self.path + "/annotations.json").read())["tuas"]
+        for tua_type in tua_dict:
+        	tua_group = tua_dict[tua_type]
+        	
+        	print(k)
