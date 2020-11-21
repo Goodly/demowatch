@@ -39,9 +39,13 @@ def event_day(text):
     str text: article to get date of
     str return: index of day of event or None
     """
+    d = ["", len(text)]
     for day in ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]:
         if day in text:
-            return day_index(day)
+            index = text.find(day)
+            if index < d[1]:
+                d = [day, text.find(day)]
+    return day_index(day)
 
 def day_index(day):
     """

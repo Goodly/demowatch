@@ -54,3 +54,11 @@ class Article(object):
                 self.tuas.append(tua)
         for t in self.tuas:
             t.set_article(self)
+
+    def same_event(self, article):
+    	"""
+    	Check if the given article describes the same event as this article.
+    	param article: article to compare this to
+    	bool return: whether they're the same event
+    	"""
+    	return self.event_date == article.event_date and self.city == article.city
