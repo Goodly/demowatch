@@ -1,6 +1,7 @@
 # Create a class for articles
 import util
 import json
+import re
 from tua import Tua
 
 class Article(object):
@@ -22,6 +23,7 @@ class Article(object):
         self.text = open(self.path + '/text.txt', 'r').read().split("\n\n")[1]
         self.id = metadata["filename"].split(".")[0]
         self.article_date = metadata["date_published"]
+        self.num_arrest_mentions = self.get_arrest_mentions()
         self.set_event_date()
         self.city, self.periodical = metadata["city"].split("-")
         self.set_tuas()
@@ -54,6 +56,14 @@ class Article(object):
                 self.tuas.append(tua)
         for t in self.tuas:
             t.set_article(self)
+
+    def get_arrest_mentions(self):
+        """
+        Uses RegEx to calculate the number of times the word `arrest` appears within the article text.
+        """
+        arrests_list = re.findall("(arrest[a-zA-Z]*)", self.txt)
+        return len(arrests_list)
+
 
     def same_event(self, article):
     	"""
