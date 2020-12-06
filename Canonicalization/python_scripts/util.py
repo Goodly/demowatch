@@ -39,13 +39,18 @@ def event_day(text):
     str text: article to get date of
     str return: index of day of event or None
     """
-    d = ["", len(text)]
+    d1 = ["", len(text)]
+    d2 = ["", len(text)]
     for day in ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]:
         if day in text:
             index = text.find(day)
-            if index < d[1]:
-                d = [day, text.find(day)]
-    return day_index(day)
+            if index < d2[1]:
+                if index < d1[1]:
+                    d2 = d1
+                    d1 = [day, text.find(day)]
+                else:
+                    d2 = [day, text.find(day)]
+    return day_index(d2[0] or d1[0])
 
 def day_index(day):
     """
@@ -54,7 +59,8 @@ def day_index(day):
     int return: index corresponding to day of the week
     """
     days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-    return None or days.index(day)
+    if day in days:
+        return days.index(day)
 
 def date_diff(date, diff):
     """
@@ -65,3 +71,10 @@ def date_diff(date, diff):
     """
     event_date = datetime.datetime.strptime(date, '%Y-%m-%d') - datetime.timedelta(days=diff)
     return event_date.strftime('%Y-%m-%d')
+
+def date_format(date):
+    """
+    Reformats a given date string.
+    str date: date string to alter
+    """
+    return datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%A, %B %d, %Y')

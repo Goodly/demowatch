@@ -16,6 +16,9 @@ class Tua(object):
         self.type = tua_type
         self.targets = []
 
+    def __str__(self):
+        return 'This TUA is from Article "{self.article.id}", starting at character {self.index[0]} and ending at character {self.index[1]}. It is of the type "{self.type}" and reads,\n\n"{self.text}"'.format(self=self)
+
     def set_article(self, article):
         """
         Assign the TUA to the article it's from.
